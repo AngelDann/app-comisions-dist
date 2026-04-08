@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Tipo {{ type_obj.name }}{% endblock %}
+{% block topbar_title %}{{ type_obj.name }}{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">{{ type_obj.name }}</h1>
+    <p class="page-subtitle">Configuración del tipo y activación por proyecto.</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'commissions_web:commission_type_list' %}">← Tipos</a>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="card">
+      <div class="card-header">Datos del tipo</div>
+      <div class="card-body">
+        <form method="post" class="vstack gap-3">
+          {% csrf_token %}
+          {% for field in form %}
+          <div>
+            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field.errors }}
+            {{ field }}
+          </div>
+          {% endfor %}
+          <div class="pt-1">
+            <button type="submit" class="btn btn-primary">Guardar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="table-card">
+      <div class="px-3 py-2" style="border-bottom:1px solid var(--app-border)">
+        <span style="font-size:0.8125rem;font-weight:600;color:var(--app-text)">Activar en proyectos</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead>
+            <tr>
+              <th>Proyecto</th>
+              <th>Estado</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in project_rows %}
+            <tr>
+              <td style="font-weight:500">{{ row.project.name }}</td>
+              <td>
+                {% if row.link %}
+                  {% if row.link.is_active %}
+                    <span class="badge badge-active">Activo</span>
+                  {% else %}
+                    <span class="badge badge-inactive">Inactivo</span>
+                  {% endif %}
+                {% else %}
+                  <span class="text-muted">No vinculado</span>
+                {% endif %}
+              </td>
+              <td>
+                <form method="post" action="{% url 'commissions_web:project_type_toggle' type_obj.pk row.project.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-primary">
+                    {% if row.link and row.link.is_active %}Desactivar{% else %}Activar{% endif %}
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% empty %}
+            <tr class="tbl-empty"><td colspan="3">No hay proyectos activos.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

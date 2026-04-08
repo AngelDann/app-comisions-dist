@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %}Nuevo ajuste{% endblock %}
+{% block topbar_title %}Registrar ajuste{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Registrar ajuste</h1>
+    <p class="page-subtitle">Aplica un movimiento manual sobre una línea o un evento (uno de los dos).</p>
+  </div>
+</div>
+
+<noscript>
+  <style>
+    #adj-target-picker { display: none !important; }
+    #adj-pick-hint { display: none !important; }
+    #adj-wrap-line, #adj-wrap-event { display: block !important; }
+  </style>
+</noscript>
+
+<div class="form-page">
+  <div class="form-page-main">
+    <div class="card">
+      <div class="card-header">Ajuste</div>
+      <div class="card-body">
+        <form
+          method="post"
+          class="vstack gap-0"
+          id="adj-form"
+          data-initial-line="{% firstof form.line.value '' %}"
+          data-initial-event="{% firstof form.event.value '' %}"
+        >
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger mb-3">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          <fieldset class="border-0 p-0 m-0" id="adj-target-fieldset">
+            <legend class="form-section-label">Objetivo</legend>
+
+            <div id="adj-target-picker" class="mb-3">
+              <div class="btn-group flex-wrap" role="radiogroup" aria-label="Tipo de objetivo">
+                <input type="radio" class="btn-check" name="adj_ui_target" id="adj-radio-line" value="line" autocomplete="off">
+                <label class="btn btn-outline-primary btn-sm" for="adj-radio-line">Línea de comisión</label>
+                <input type="radio" class="btn-check" name="adj_ui_target" id="adj-radio-event" value="event" autocomplete="off">
+                <label class="btn btn-outline-primary btn-sm" for="adj-radio-event">Evento</label>
+              </div>
+              <p id="adj-pick-hint" class="text-muted small mt-2 mb-0">Elige si el ajuste va sobre una línea ya calculada o sobre el evento capturado.</p>
+            </div>
+
+            <div id="adj-wrap-line" class="mb-3 d-none">
+              <label class="form-label" for="{{ form.line.id_for_label }}">{{ form.line.label }}</label>
+              {{ form.line.errors }}
+              {{ form.line }}
+            </div>
+            <div id="adj-wrap-event" class="mb-3 d-none">
+              <label class="form-label" for="{{ form.event.id_for_label }}">{{ form.event.label }}</label>
+              {{ form.event.errors }}
+              {{ form.event }}
+            </div>
+          </fieldset>
+
+          <p class="form-section-label">Importe</p>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.kind.id_for_label }}">{{ form.kind.label }}</label>
+              {{ form.kind.errors }}
+              {{ form.kind }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.amount.id_for_label }}">{{ form.amount.label }}</label>
+              {{ form.amount.errors }}
+              {{ form.amount }}
+            </div>
+          </div>
+
+          <p class="form-section-label">Motivo</p>
+          <div>
+            <label class="form-label" for="{{ form.reason.id_for_label }}">{{ form.reason.label }}</label>
+            {{ form.reason.errors }}
+            {{ form.reason }}
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Guardar</button>
+            <a class="btn btn-outline-secondary" href="{% url 'commissions:adjustments_list' %}">Volver</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <aside class="form-aside" aria-label="Ayuda">
+    <div class="form-aside-panel">
+      <h2 class="form-aside-title">Línea o evento</h2>
+      <p class="form-aside-tip">Indica <strong>una sola</strong> vía: la línea si el ajuste refiere a un cálculo ya generado, o el evento si aún no hay línea desglosada.</p>
+      {% if adjustment_self_only %}
+      <p class="form-aside-tip" style="margin-top:0.75rem">Con tu perfil solo ves <strong>tus</strong> líneas y eventos (ficha de empleado vinculada a tu usuario). Los administradores y líderes de equipo ven el alcance ampliado según sus permisos.</p>
+      {% endif %}
+      <h2 class="form-aside-title" style="margin-top:1rem">Trazabilidad</h2>
+      <p class="form-aside-tip">El <strong>motivo</strong> queda en auditoría; sé específico (ticket, periodo, acuerdo).</p>
+    </div>
+  </aside>
+</div>
+
+<script>
+(function () {
+  var form = document.getElementById("adj-form");
+  if (!form) return;
+  var lineSel = document.getElementById("{{ form.line.id_for_label }}");
+  var eventSel = document.getElementById("{{ form.event.id_for_label }}");
+  var wrapLine = document.getElementById("adj-wrap-line");
+  var wrapEvent = document.getElementById("adj-wrap-event");
+  var rLine = document.getElementById("adj-radio-line");
+  var rEvent = document.getElementById("adj-radio-event");
+  var hint = document.getElementById("adj-pick-hint");
+  if (!lineSel || !eventSel || !wrapLine || !wrapEvent || !rLine || !rEvent) return;
+
+  function sync() {
+    var modeLine = rLine.checked;
+    var modeEvent = rEvent.checked;
+    var chosen = modeLine || modeEvent;
+    wrapLine.classList.toggle("d-none", !modeLine);
+    wrapEvent.classList.toggle("d-none", !modeEvent);
+    if (hint) hint.classList.toggle("d-none", chosen);
+    lineSel.disabled = !modeLine;
+    eventSel.disabled = !modeEvent;
+    if (!modeLine) {
+      lineSel.selectedIndex = 0;
+    }
+    if (!modeEvent) {
+      eventSel.selectedIndex = 0;
+    }
+  }
+
+  rLine.addEventListener("change", sync);
+  rEvent.addEventListener("change", sync);
+  form.addEventListener("submit", function () {
+    sync();
+  });
+
+  var il = (form.getAttribute("data-initial-line") || "").trim();
+  var ie = (form.getAttribute("data-initial-event") || "").trim();
+  if (il) {
+    rLine.checked = true;
+  } else if (ie) {
+    rEvent.checked = true;
+  }
+  sync();
+})();
+</script>
+
+{% endblock %}

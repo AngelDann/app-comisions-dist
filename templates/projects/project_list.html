@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Proyectos{% endblock %}
+{% block topbar_title %}Proyectos{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Proyectos</h1>
+    <p class="page-subtitle">Proyectos activos de la compañía y su configuración.</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-primary btn-sm" href="{% url 'projects:project_create' %}">Nuevo proyecto</a>
+  </div>
+</div>
+
+<div class="table-card">
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Slug</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in projects %}
+        <tr>
+          <td style="font-weight:500">{{ p.name }}</td>
+          <td><code>{{ p.slug }}</code></td>
+          <td>
+            {% if p.is_active %}
+              <span class="badge badge-active">Activo</span>
+            {% else %}
+              <span class="badge badge-inactive">Inactivo</span>
+            {% endif %}
+          </td>
+          <td class="text-end text-nowrap">
+            <a class="tbl-action" href="{% url 'projects:project_edit' p.pk %}">Editar</a>
+            <button type="button" class="btn btn-link btn-sm text-danger p-0 ms-2" data-bs-toggle="modal" data-bs-target="#projectDeleteModal{{ p.pk }}" title="Eliminar">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr class="tbl-empty"><td colspan="4">Sin proyectos registrados.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% for p in projects %}
+<div class="modal fade" id="projectDeleteModal{{ p.pk }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title fs-5">Eliminar proyecto</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <p>¿Seguro que quieres eliminar el proyecto <strong>{{ p.name }}</strong>?</p>
+        <p class="text-danger small mb-0">Se eliminarán los vínculos con equipos, reglas y eventos asociados.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <form method="post" action="{% url 'projects:project_delete' p.pk %}" class="d-inline">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">Eliminar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}

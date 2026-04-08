@@ -1,0 +1,27 @@
+{# Condition leaf: field, operator, value (names cg_{g}_l_{l}_*). #}
+<div class="cond-leaf row g-2 align-items-center" data-l="{{ l }}">
+  <div class="col-md-4">
+    <select name="cg_{{ g }}_l_{{ l }}_field" class="form-select form-select-sm" aria-label="Campo">
+      <option value="">— Campo —</option>
+      {% for spec in field_specs %}
+        <option value="{{ spec.key }}" {% if row and row.field == spec.key %}selected{% endif %}>{{ spec.label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-3">
+    <select name="cg_{{ g }}_l_{{ l }}_op" class="form-select form-select-sm" aria-label="Operador">
+      {% for opv, opl in all_operator_choices %}
+        <option value="{{ opv }}" {% if row and row.op == opv %}selected{% endif %}>{{ opl }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-4">
+    <input type="text" name="cg_{{ g }}_l_{{ l }}_value" class="form-control form-control-sm"
+           value="{% if row %}{{ row.value_str }}{% endif %}" placeholder="valor" aria-label="Valor">
+  </div>
+  <div class="col-md-1 text-end">
+    <button type="button" class="btn btn-sm btn-outline-danger js-remove-leaf" title="Quitar condición" aria-label="Quitar condición">
+      <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+</div>

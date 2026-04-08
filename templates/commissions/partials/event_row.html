@@ -1,0 +1,54 @@
+<tr id="event-row-{{ event.id }}">
+  <td class="text-muted" style="font-size:0.75rem">
+    <a href="{% url 'commissions:event_edit' event.id %}" class="event-edit-link" title="Editar evento completo">
+      {{ event.id }}
+      <svg viewBox="0 0 24 24" width="12" height="12" style="vertical-align:-1px;stroke:currentColor;fill:none;stroke-width:2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    </a>
+  </td>
+  <td>
+    {% if nav_commission_auditor %}
+    <span class="small">{{ event.occurred_on|date:"Y-m-d" }}</span>
+    {% else %}
+    <input type="date" class="form-control form-control-sm" name="occurred_on"
+           value="{{ event.occurred_on|date:'Y-m-d' }}"
+           hx-post="{% url 'commissions:event_patch' event.id %}"
+           hx-trigger="change"
+           hx-target="#ev-feedback-{{ event.id }}"
+           hx-swap="innerHTML"
+           hx-include="#htmx-csrf"
+           style="width:140px">
+    {% endif %}
+  </td>
+  <td class="text-muted">{{ event.project }}</td>
+  <td style="font-weight:500">{{ event.employee }}</td>
+  <td>
+    {% if nav_commission_auditor %}
+    <span class="small" {% if event.fx_rate %}title="Monto en {{ event.fx_rate.currency_code }}; TC {{ event.fx_rate.rate_date }} = {{ event.fx_rate.value }}"{% endif %}>{{ event.amount_usd|default:"—" }}</span>
+    {% else %}
+    <div class="input-group input-group-sm" style="width:130px">
+      <input type="text" class="form-control" name="amount_usd"
+             value="{{ event.amount_usd|default:'' }}"
+             {% if event.fx_rate %}title="Monto en {{ event.fx_rate.currency_code }}; TC {{ event.fx_rate.rate_date }} = {{ event.fx_rate.value }} (→ moneda base)"{% endif %}
+             hx-post="{% url 'commissions:event_patch' event.id %}"
+             hx-trigger="change delay:400ms"
+             hx-target="#ev-feedback-{{ event.id }}"
+             hx-swap="innerHTML"
+             hx-include="#htmx-csrf">
+    </div>
+    <div id="ev-feedback-{{ event.id }}" class="form-text mt-1"></div>
+    {% endif %}
+  </td>
+  <td><code title="Clase o tipo de actividad del evento">{{ event.event_kind }}</code></td>
+  {% if nav_company_wide or nav_commission_auditor %}
+  <td class="text-muted small" style="max-width:10rem">{{ event.commission_type|default:"—" }}</td>
+  <td class="text-muted small" style="max-width:14rem">
+    {% if event.notes %}
+      <a href="{% url 'commissions:event_edit' event.id %}" class="text-muted" style="text-decoration:none" title="Ver notas completas">
+        {{ event.notes|striptags|truncatechars:72 }}
+      </a>
+    {% else %}
+      <span class="text-body-secondary">—</span>
+    {% endif %}
+  </td>
+  {% endif %}
+</tr>

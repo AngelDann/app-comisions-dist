@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Ajustes{% endblock %}
+{% block topbar_title %}Ajustes{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Ajustes</h1>
+  </div>
+</div>
+
+<nav class="settings-nav">
+  <a class="settings-nav-link {% if settings_active == 'account' %}active{% endif %}"
+     href="{% url 'accounts:settings_account' %}">Cuenta</a>
+  <a class="settings-nav-link {% if settings_active == 'profile' %}active{% endif %}"
+     href="{% url 'accounts:settings_profile' %}">Perfil</a>
+  {% if nav_is_company_admin %}
+  <a class="settings-nav-link {% if settings_active == 'company' %}active{% endif %}"
+     href="{% url 'accounts:settings_company' %}">Empresa</a>
+  {% endif %}
+</nav>
+
+{% block settings_content %}{% endblock %}
+
+{% endblock %}

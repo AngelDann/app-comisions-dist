@@ -1,0 +1,12 @@
+<div id="team-select-wrap" hx-swap-oob="true">
+  {% include "commissions/partials/team_select_wrap.html" with selected=selected_team %}
+</div>
+<div id="commission-type-wrap" hx-swap-oob="true">
+  <label class="form-label" for="id_commission_type">Tipo de comisión</label>
+  <select name="commission_type" id="id_commission_type" class="form-select">
+    <option value="">---------</option>
+    {% for t in types %}
+      <option value="{{ t.pk }}"{% if selected_type == t.pk|stringformat:"s" %} selected{% endif %}>{{ t }}</option>
+    {% endfor %}
+  </select>
+</div>

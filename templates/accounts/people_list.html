@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Usuarios{% endblock %}
+{% block topbar_title %}Usuarios y acceso{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Usuarios y acceso</h1>
+    <p class="page-subtitle">Miembros de la compañía, roles y vinculación a empleados.</p>
+  </div>
+  {% if can_create %}
+  <div class="page-actions">
+    <a class="btn btn-primary btn-sm" href="{% url 'accounts:people_create' %}">Nuevo miembro</a>
+  </div>
+  {% endif %}
+</div>
+
+<div class="table-card">
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>Correo</th>
+          <th>Rol</th>
+          <th>Empleado</th>
+          <th>Equipos / Alcance</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in member_rows %}
+        {% with m=row.membership %}
+        <tr>
+          <td style="font-weight:500">{{ m.user.email|default:m.user.username }}</td>
+          <td>{{ m.get_role_display }}</td>
+          <td>
+            {% if row.has_employee %}
+              <span class="badge badge-active">Vinculado</span>
+            {% else %}
+              <span class="badge badge-inactive">Sin ficha</span>
+            {% endif %}
+          </td>
+          <td class="text-muted">
+            {% for s in row.scopes %}
+              {{ s.team.name }}{% if s.is_team_lead %} <span class="badge badge-adjusted ms-1">líder</span>{% endif %}{% if not forloop.last %}, {% endif %}
+            {% empty %}
+              —
+            {% endfor %}
+          </td>
+          <td class="text-end text-nowrap">
+            {% if can_edit %}
+              <a class="tbl-action" href="{% url 'accounts:people_edit' m.pk %}">Editar</a>
+              {% if m.user != request.user and not m.user.is_superuser %}
+              <button type="button" class="btn btn-link btn-sm text-danger p-0 ms-2" data-bs-toggle="modal" data-bs-target="#memberDeleteModal{{ m.pk }}" title="Eliminar">
+                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              </button>
+              {% endif %}
+            {% else %}
+              —
+            {% endif %}
+          </td>
+        </tr>
+        {% endwith %}
+        {% empty %}
+        <tr class="tbl-empty"><td colspan="5">Sin miembros visibles.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% for row in member_rows %}
+{% with m=row.membership %}
+{% if can_edit and m.user != request.user and not m.user.is_superuser %}
+<div class="modal fade" id="memberDeleteModal{{ m.pk }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title fs-5">Eliminar miembro</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <p>¿Seguro que quieres eliminar a <strong>{{ m.user.email|default:m.user.username }}</strong> de la compañía?</p>
+        <p class="text-danger small mb-0">Se revocarán su acceso y alcances de equipo. Si no pertenece a otra compañía, la cuenta de usuario también se eliminará.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <form method="post" action="{% url 'accounts:people_delete' m.pk %}" class="d-inline">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">Eliminar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endwith %}
+{% endfor %}
+
+{% endblock %}

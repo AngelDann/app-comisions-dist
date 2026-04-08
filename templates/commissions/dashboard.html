@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Inicio{% endblock %}
+{% block topbar_title %}Inicio{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Inicio</h1>
+    <p class="page-subtitle">Panel de operaciones de comisiones</p>
+  </div>
+</div>
+
+{# ── Resumen personal del empleado ── #}
+{% if my_summary %}
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-lg-3">
+    <div class="stats-card">
+      <div class="stats-label">Total acumulado</div>
+      <div class="stats-value">${{ my_summary.grand_total|floatformat:2|intcomma }}</div>
+      <div class="stats-sub">{{ my_summary.currency }} · Todas las comisiones</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="stats-card stats-card--teal">
+      <div class="stats-label">Periodo actual</div>
+      <div class="stats-value">${{ my_summary.period_total|floatformat:2|intcomma }}</div>
+      <div class="stats-sub">{{ my_summary.current_period.name|default:"Sin periodo" }}</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="stats-card">
+      <div class="stats-label">Líneas pendientes</div>
+      <div class="stats-value">{{ pending_lines }}</div>
+      <div class="stats-sub">Pendientes de revisión</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  {# Desglose por estado #}
+  <div class="col-lg-6">
+    <div class="table-card">
+      <div class="d-flex align-items-center justify-content-between px-3 py-2" style="border-bottom:1px solid var(--app-border)">
+        <span style="font-size:0.8125rem;font-weight:600;color:var(--app-text)">Desglose por estado</span>
+        <span class="text-muted" style="font-size:0.75rem">{{ my_summary.currency }}</span>
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for row in my_summary.state_breakdown %}
+        <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+          <div class="d-flex align-items-center gap-2">
+            <span class="breakdown-dot breakdown-dot--{{ row.color }}"></span>
+            <span style="font-size:0.8125rem;color:var(--app-text)">{{ row.label }}</span>
+          </div>
+          <span style="font-size:0.875rem;font-weight:600;font-variant-numeric:tabular-nums;color:var(--app-text)">
+            ${{ row.amount|floatformat:2|intcomma }}
+          </span>
+        </li>
+        {% empty %}
+        <li class="list-group-item">
+          <span class="text-muted" style="font-size:0.8125rem">Sin comisiones registradas</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  {# Desglose por tipo de comisión (periodo actual) #}
+  <div class="col-lg-6">
+    <div class="table-card">
+      <div class="d-flex align-items-center justify-content-between px-3 py-2" style="border-bottom:1px solid var(--app-border)">
+        <span style="font-size:0.8125rem;font-weight:600;color:var(--app-text)">Por tipo · {{ my_summary.current_period.name|default:"—" }}</span>
+        <span class="text-muted" style="font-size:0.75rem">{{ my_summary.currency }}</span>
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for row in my_summary.by_type_period %}
+        <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+          <span style="font-size:0.8125rem;color:var(--app-text)">{{ row.commission_type__name|default:"Sin tipo" }}</span>
+          <span style="font-size:0.875rem;font-weight:600;font-variant-numeric:tabular-nums;color:var(--app-text)">
+            ${{ row.total|floatformat:2|intcomma }}
+          </span>
+        </li>
+        {% empty %}
+        <li class="list-group-item">
+          <span class="text-muted" style="font-size:0.8125rem">Sin comisiones en este periodo</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% else %}
+{# Sin empleado vinculado: solo mostrar tarjeta de pendientes #}
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-lg-3">
+    <div class="stats-card">
+      <div class="stats-label">Líneas pendientes</div>
+      <div class="stats-value">{{ pending_lines }}</div>
+      <div class="stats-sub">Pendientes de revisión</div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{# ── Periodos recientes ── #}
+<div class="table-card">
+  <div class="d-flex align-items-center justify-content-between px-3 py-2" style="border-bottom:1px solid var(--app-border)">
+    <span style="font-size:0.8125rem;font-weight:600;color:var(--app-text)">Periodos recientes</span>
+  </div>
+  <ul class="list-group list-group-flush">
+    {% for p in periods %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-3">
+          <div>
+            <span style="font-weight:600;color:var(--app-text)">{{ p.name }}</span>
+            <span class="text-muted small ms-2">{{ p.start_date }} — {{ p.end_date }}</span>
+          </div>
+          <span class="badge badge-secondary-period">{{ p.get_state_display }}</span>
+        </div>
+        {% if nav_company_wide %}
+        <form method="post" action="{% url 'commissions:recalculate_period' p.id %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm btn-outline-primary">Recalcular</button>
+        </form>
+        {% endif %}
+      </li>
+    {% empty %}
+      <li class="list-group-item">
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <p class="empty-state-title">Sin periodos</p>
+          <p class="empty-state-text">
+            {% if nav_company_wide %}
+              Crea el primero en <a href="{% url 'commissions_web:period_list' %}">Periodos</a>.
+            {% else %}
+              No hay periodos activos.
+            {% endif %}
+          </p>
+        </div>
+      </li>
+    {% endfor %}
+  </ul>
+</div>
+
+{% endblock %}

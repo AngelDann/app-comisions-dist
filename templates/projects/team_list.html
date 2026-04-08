@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Equipos{% endblock %}
+{% block topbar_title %}Equipos{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Equipos</h1>
+    <p class="page-subtitle">Equipos de trabajo asociados a los proyectos.</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-primary btn-sm" href="{% url 'projects:team_create' %}">Nuevo equipo</a>
+  </div>
+</div>
+
+<div class="table-card">
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Slug</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in teams %}
+        <tr>
+          <td style="font-weight:500">{{ t.name }}</td>
+          <td><code>{{ t.slug }}</code></td>
+          <td>
+            {% if t.is_active %}
+              <span class="badge badge-active">Activo</span>
+            {% else %}
+              <span class="badge badge-inactive">Inactivo</span>
+            {% endif %}
+          </td>
+          <td class="text-end text-nowrap">
+            <a class="tbl-action" href="{% url 'projects:team_edit' t.pk %}">Editar</a>
+            <button type="button" class="btn btn-link btn-sm text-danger p-0 ms-2" data-bs-toggle="modal" data-bs-target="#teamDeleteModal{{ t.pk }}" title="Eliminar">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr class="tbl-empty"><td colspan="4">Sin equipos registrados.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% for t in teams %}
+<div class="modal fade" id="teamDeleteModal{{ t.pk }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title fs-5">Eliminar equipo</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <p>¿Seguro que quieres eliminar el equipo <strong>{{ t.name }}</strong>?</p>
+        <p class="text-danger small mb-0">Se eliminarán las asignaciones a proyectos, planes y empleados asociadas.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <form method="post" action="{% url 'projects:team_delete' t.pk %}" class="d-inline">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">Eliminar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}

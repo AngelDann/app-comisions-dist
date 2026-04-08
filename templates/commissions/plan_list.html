@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Planes de comisión{% endblock %}
+{% block topbar_title %}Planes{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Planes de comisión</h1>
+    <p class="page-subtitle">Cada plan agrupa reglas y se asigna a equipos o empleados. Los planes globales aplican sin asignación.</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-primary btn-sm" href="{% url 'commissions:plan_create' %}">
+      <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nuevo plan
+    </a>
+  </div>
+</div>
+
+{% if plans %}
+<div class="plan-card-grid">
+  {% for p in plans %}
+  <a class="plan-card {% if p.is_active %}plan-card--active{% endif %}" href="{% url 'commissions:plan_detail' p.pk %}">
+    <div>
+      <h3 class="plan-card-name">{{ p.name }}</h3>
+    </div>
+    <div class="plan-card-meta">
+      {% if p.is_active %}
+        <span class="badge badge-active">Activo</span>
+      {% else %}
+        <span class="badge badge-inactive">Inactivo</span>
+      {% endif %}
+      {% if p.is_global %}
+        <span class="badge" style="background:var(--app-info-subtle);color:var(--app-info-text);border:1px solid #99F6E4">Global</span>
+      {% endif %}
+      {% if p.project %}
+        <span class="plan-card-detail">{{ p.project }}</span>
+      {% else %}
+        <span class="plan-card-detail">Todos los proyectos</span>
+      {% endif %}
+    </div>
+    {% if p.valid_from or p.valid_to %}
+    <div class="plan-card-detail">
+      <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" style="vertical-align:-1px;opacity:0.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      {{ p.valid_from|default:"…" }} → {{ p.valid_to|default:"…" }}
+    </div>
+    {% endif %}
+    <div class="plan-card-actions">
+      <span class="tbl-action">Abrir</span>
+      <span class="tbl-action" onclick="event.preventDefault();window.location='{% url 'commissions:plan_edit' p.pk %}'">Editar</span>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card">
+  <div class="card-body">
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="12" x2="12" y2="18"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+      <div class="empty-state-title">Sin planes de comisión</div>
+      <p class="empty-state-text">Crea tu primer plan para asociar reglas de cálculo a equipos y empleados.</p>
+      <a class="btn btn-primary btn-sm mt-2" href="{% url 'commissions:plan_create' %}">Crear primer plan</a>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

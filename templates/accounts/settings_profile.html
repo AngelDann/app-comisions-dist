@@ -1,0 +1,25 @@
+{% extends "accounts/settings_layout.html" %}
+{% block title %}Ajustes · Perfil{% endblock %}
+{% block settings_content %}
+<div class="card" style="max-width:600px">
+  <div class="card-header">Perfil en {{ active_company.name }}</div>
+  <div class="card-body">
+    {% if employee and profile_form %}
+    <p class="text-muted small">Estos datos corresponden a tu ficha de empleado en la compañía activa.</p>
+    <form method="post" class="vstack gap-3">
+      {% csrf_token %}
+      {% for field in profile_form %}
+      <div>
+        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field.errors }}
+        {{ field }}
+      </div>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary">Guardar perfil</button>
+    </form>
+    {% else %}
+    <p class="text-muted mb-0">No hay una ficha de empleado vinculada a tu usuario en esta compañía.{% if nav_can_manage_users %} Puedes revisar <a href="{% url 'staff_web:employee_list' %}">Empleados</a> para vincular tu usuario.{% else %} Pide a un administrador que te asocie a una ficha de empleado.{% endif %}</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

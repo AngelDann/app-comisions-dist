@@ -1,0 +1,48 @@
+<div class="table-card">
+  <p class="small text-muted mb-2 mb-md-3">Interpretación: <strong>1</strong> unidad de la moneda de la fila = el valor en <strong>{{ base_currency }}</strong> (moneda base de la compañía).</p>
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Moneda</th>
+          <th>Valor <span class="text-muted fw-normal small">(→ {{ base_currency }})</span></th>
+          <th>Fuente</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rates %}
+        <tr>
+          <td class="text-muted">{{ r.rate_date }}</td>
+          <td><code>{{ r.currency_code }}</code></td>
+          <td style="max-width:160px">
+            <input class="form-control form-control-sm" name="value" value="{{ r.value }}"
+                   title="1 {{ r.currency_code }} = este valor en {{ base_currency }}"
+                   hx-post="{% url 'fx:patch' r.id %}"
+                   hx-trigger="change delay:300ms"
+                   hx-target="#fx-fb-{{ r.id }}"
+                   hx-swap="innerHTML"
+                   hx-include="#htmx-csrf">
+            <span id="fx-fb-{{ r.id }}" class="form-text d-block"></span>
+          </td>
+          <td class="text-muted">{{ r.source }}</td>
+          <td class="text-end">
+            <button type="button" class="btn btn-link btn-sm text-danger p-0"
+                    hx-post="{% url 'fx:delete' r.id %}"
+                    hx-target="#rates-table-wrap"
+                    hx-swap="innerHTML"
+                    hx-confirm="¿Eliminar tipo de cambio {{ r.currency_code }} del {{ r.rate_date }}?"
+                    hx-include="#htmx-csrf"
+                    title="Eliminar">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr class="tbl-empty"><td colspan="5">Sin tipos de cambio registrados.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

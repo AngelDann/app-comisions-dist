@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Ajustes{% endblock %}
+{% block topbar_title %}Ajustes e incidencias{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Ajustes e incidencias</h1>
+    <p class="page-subtitle">Ajustes manuales sobre líneas o eventos de comisión.</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-primary btn-sm" href="{% url 'commissions:adjustment_create' %}">Nuevo ajuste</a>
+  </div>
+</div>
+
+<div class="table-card">
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>Tipo</th>
+          <th>Monto</th>
+          <th>Motivo</th>
+          <th>Línea / Evento</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in adjustments %}
+        <tr>
+          <td><span class="badge badge-adjusted">{{ a.get_kind_display }}</span></td>
+          <td style="font-weight:600">{{ a.amount }}</td>
+          <td class="text-muted">{{ a.reason|truncatechars:60 }}</td>
+          <td>
+            {% if a.line %}
+              <code>Línea {{ a.line_id }}</code>
+            {% elif a.event %}
+              <code>Evento {{ a.event_id }}</code>
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr class="tbl-empty"><td colspan="4">Sin ajustes registrados.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

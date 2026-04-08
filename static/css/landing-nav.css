@@ -1,0 +1,171 @@
+/**
+ * Barra superior compartida (landing + páginas públicas como el manual).
+ * Replica tokens y reglas de templates/landing.html para mantener la misma apariencia.
+ */
+:root {
+  --ln-bg: #f9f8f6;
+  --ln-surface2: #f3f1ed;
+  --ln-border: #e7e5e4;
+  --ln-border2: #d6d3d1;
+  --ln-text: #1c1917;
+  --ln-text2: #57534e;
+  --ln-amber: #b45309;
+  --ln-amber-h: #92400e;
+  --ln-radius: 6px;
+  --ln-font: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+}
+
+/* Compatibilidad con selectores de la landing que usan --text, --amber, etc. */
+:root {
+  --bg: var(--ln-bg);
+  --surface2: var(--ln-surface2);
+  --border: var(--ln-border);
+  --border2: var(--ln-border2);
+  --text: var(--ln-text);
+  --text2: var(--ln-text2);
+  --amber: var(--ln-amber);
+  --amber-h: var(--ln-amber-h);
+  --radius: var(--ln-radius);
+  --font: var(--ln-font);
+}
+
+.ln-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 0 2rem;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(249, 248, 246, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.3s, background 0.3s;
+}
+
+.ln-nav.is-scrolled {
+  border-bottom-color: var(--ln-border);
+  background: rgba(249, 248, 246, 0.95);
+}
+
+.ln-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.ln-brand-mark {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #b45309, #d97706);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgb(180 83 9 / 0.2);
+}
+
+.ln-brand-mark svg {
+  width: 14px;
+  height: 14px;
+  stroke: #fff;
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ln-brand-name {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--ln-text);
+  letter-spacing: -0.02em;
+}
+
+.ln-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ln-nav-link {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--ln-text2);
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--ln-radius);
+  transition: color 0.15s, background 0.15s;
+  text-decoration: none;
+}
+
+.ln-nav-link:hover {
+  color: var(--ln-text);
+  background: var(--ln-surface2);
+}
+
+.ln-nav-link.is-active {
+  color: var(--ln-text);
+  background: var(--ln-surface2);
+  font-weight: 600;
+}
+
+.ln-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--ln-font);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.5rem 1.125rem;
+  border-radius: var(--ln-radius);
+  cursor: pointer;
+  transition: all 0.15s;
+  border: 1px solid transparent;
+  text-decoration: none;
+  letter-spacing: 0.01em;
+}
+
+.ln-btn-primary {
+  background: var(--ln-amber);
+  color: #fff;
+  border-color: var(--ln-amber);
+  box-shadow: 0 1px 3px rgb(180 83 9 / 0.2);
+}
+
+.ln-btn-primary:hover {
+  background: var(--ln-amber-h);
+  border-color: var(--ln-amber-h);
+  color: #fff;
+  box-shadow: 0 2px 8px rgb(180 83 9 / 0.25);
+}
+
+.ln-btn-ghost {
+  background: transparent;
+  color: var(--ln-text2);
+  border-color: var(--ln-border2);
+}
+
+.ln-btn-ghost:hover {
+  background: var(--ln-surface2);
+  color: var(--ln-text);
+}
+
+/* Páginas con nav fija (p. ej. manual público): evitar solapamiento del contenido */
+body.has-fixed-landing-nav {
+  padding-top: 64px;
+}
+
+@media (max-width: 768px) {
+  .ln-nav {
+    padding: 0 1rem;
+  }
+
+  .ln-nav-links .ln-nav-link {
+    display: none;
+  }
+}

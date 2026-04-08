@@ -1,0 +1,49 @@
+<div class="manual-layout">
+  <aside class="manual-sidebar" aria-label="Índice del manual">
+    <div class="manual-sidebar-title">Manual de usuario</div>
+    <form class="manual-search" method="get"
+          action="{% if current_page %}{% url 'manuals:page' current_page.slug %}{% else %}{% url 'manuals:index' %}{% endif %}"
+          role="search">
+      <svg class="manual-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="search" name="q" value="{{ search_query }}" placeholder="Buscar" autocomplete="off" aria-label="Buscar en el manual">
+    </form>
+
+    {% if search_query %}
+      <div class="manual-search-results">
+        {% if search_matches %}
+          <strong>Resultados</strong>
+          <ul>
+            {% for p in search_matches %}
+              <li><a href="{% url 'manuals:page' p.slug %}">{{ p.title }}</a></li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <span class="manual-empty">Sin coincidencias.</span>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    {% if nav_branches %}
+      <ul class="manual-nav">
+        {% include "manuals/_nav_tree.html" with branches=nav_branches current_page=current_page %}
+      </ul>
+    {% endif %}
+  </aside>
+
+  <div class="manual-main">
+    {% if empty_catalog %}
+      <h1 class="manual-main-header">Manual de usuario</h1>
+      <p class="manual-empty">Aún no hay páginas publicadas. Los administradores pueden añadirlas desde el panel de administración.</p>
+    {% elif current_page %}
+      <h1 class="manual-main-header">
+        {% if current_page.icon %}<span aria-hidden="true">{{ current_page.icon }} </span>{% endif %}
+        {{ current_page.title }}
+      </h1>
+      <article class="manual-prose">
+        {{ rendered_html|safe }}
+      </article>
+    {% endif %}
+  </div>
+</div>

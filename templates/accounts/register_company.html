@@ -1,0 +1,64 @@
+{% extends "base_auth.html" %}
+{% block title %}Registrar compañía{% endblock %}
+{% block content %}
+<div class="auth-card" style="max-width:520px;">
+  <div class="auth-logo">
+    <div class="auth-logo-icon">
+      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    </div>
+    <p class="auth-logo-title">Nueva compañía</p>
+    <p class="auth-logo-sub">Se generará la compañía y tu usuario como administrador.</p>
+  </div>
+
+  <form method="post" novalidate class="vstack gap-0">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger mb-3">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <p class="mb-2" style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--app-text-3)">Compañía</p>
+    <div class="row g-3 mb-4">
+      <div class="col-12">
+        <label class="form-label" for="{{ form.company_name.id_for_label }}">{{ form.company_name.label }}</label>
+        {{ form.company_name }}
+        {{ form.company_name.errors }}
+      </div>
+      <div class="col-8">
+        <label class="form-label" for="{{ form.company_slug.id_for_label }}">{{ form.company_slug.label }}</label>
+        {{ form.company_slug }}
+        {% if form.company_slug.help_text %}<div class="form-text">{{ form.company_slug.help_text }}</div>{% endif %}
+        {{ form.company_slug.errors }}
+      </div>
+      <div class="col-4">
+        <label class="form-label" for="{{ form.base_currency.id_for_label }}">{{ form.base_currency.label }}</label>
+        {{ form.base_currency }}
+        {{ form.base_currency.errors }}
+      </div>
+    </div>
+
+    <p class="mb-2" style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--app-text-3)">Administrador</p>
+    <div class="row g-3 mb-4">
+      <div class="col-12">
+        <label class="form-label" for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+        {{ form.email }}
+        {{ form.email.errors }}
+      </div>
+      <div class="col-6">
+        <label class="form-label" for="{{ form.password1.id_for_label }}">{{ form.password1.label }}</label>
+        {{ form.password1 }}
+        {{ form.password1.errors }}
+      </div>
+      <div class="col-6">
+        <label class="form-label" for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
+        {{ form.password2 }}
+        {{ form.password2.errors }}
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary w-100">Crear compañía y entrar</button>
+    <p class="text-center mt-3 mb-0" style="font-size:0.8125rem;color:var(--app-text-3)">
+      ¿Ya tienes cuenta? <a href="{% url 'accounts:login' %}" style="color:var(--app-primary)">Iniciar sesión</a>
+    </p>
+  </form>
+</div>
+{% endblock %}

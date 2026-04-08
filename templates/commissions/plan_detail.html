@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+{% block title %}{{ plan.name }}{% endblock %}
+{% block topbar_title %}Plan{% endblock %}
+{% block content %}
+
+<div class="context-bar">
+  <a href="{% url 'commissions:plan_list' %}">Planes</a>
+  <span class="context-bar-sep">/</span>
+  <span>{{ plan.name }}</span>
+</div>
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">{{ plan.name }}</h1>
+    <div class="d-flex flex-wrap gap-2 align-items-center mt-1">
+      {% if plan.is_active %}
+        <span class="badge badge-active">Activo</span>
+      {% else %}
+        <span class="badge badge-inactive">Inactivo</span>
+      {% endif %}
+      {% if plan.is_global %}
+        <span class="badge" style="background:var(--app-info-subtle);color:var(--app-info-text);border:1px solid #99F6E4">Global</span>
+      {% endif %}
+      <span class="text-muted small">{{ plan.project|default:"Todos los proyectos" }}</span>
+      {% if plan.valid_from or plan.valid_to %}
+        <span class="text-muted small">
+          · {{ plan.valid_from|default:"…" }} → {{ plan.valid_to|default:"…" }}
+        </span>
+      {% endif %}
+    </div>
+  </div>
+  <div class="page-actions d-flex flex-wrap gap-2">
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'commissions:plan_edit' plan.pk %}">
+      <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      Editar
+    </a>
+    <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#planDeleteModal">Eliminar</button>
+  </div>
+</div>
+
+<ul class="nav nav-tabs mb-4">
+  <li class="nav-item">
+    <a class="nav-link {% if tab == 'rules' %}active{% endif %}" href="?tab=rules">
+      Reglas
+      {% if rules %}<span class="badge bg-secondary ms-1" style="font-size:0.625rem">{{ rules.count }}</span>{% endif %}
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if tab == 'assignments' %}active{% endif %}" href="?tab=assignments">
+      Asignaciones
+      {% if team_assignments or employee_assignments %}
+        <span class="badge bg-secondary ms-1" style="font-size:0.625rem">{{ team_assignments.count|add:employee_assignments.count }}</span>
+      {% endif %}
+    </a>
+  </li>
+</ul>
+
+{% if tab == 'rules' %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <span class="text-muted small">Reglas de cálculo en este plan, ordenadas por prioridad.</span>
+  <a class="btn btn-primary btn-sm" href="{% url 'commissions:rule_create' %}?plan={{ plan.pk }}">
+    <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Nueva regla
+  </a>
+</div>
+
+{% if rules %}
+<div class="table-card">
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th style="width:2.5rem">#</th>
+          <th>Nombre</th>
+          <th>Tipo comisión</th>
+          <th>Alcance</th>
+          <th>Acción</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rules %}
+        <tr>
+          <td><span class="text-muted" title="Prioridad {{ r.priority }}">{{ r.priority }}</span></td>
+          <td>
+            <a href="{% url 'commissions:rule_edit' r.pk %}" class="fw-semibold text-decoration-none" style="color:var(--app-text)">{{ r.name }}</a>
+            {% if not r.is_active %}<span class="badge badge-inactive ms-1">Inactiva</span>{% endif %}
+          </td>
+          <td>{{ r.commission_type }}</td>
+          <td class="text-muted small">
+            {% if r.project %}{{ r.project }}{% endif %}
+            {% if r.project and r.team %} · {% endif %}
+            {% if r.team %}{{ r.team }}{% endif %}
+            {% if not r.project and not r.team %}—{% endif %}
+          </td>
+          <td>{% include "commissions/partials/action_badge.html" with action_type=r.action_type %}</td>
+          <td class="text-end text-nowrap">
+            <a class="tbl-action" href="{% url 'commissions:rule_edit' r.pk %}">Editar</a>
+            <button type="button" class="btn btn-link btn-sm text-danger p-0 ms-2" data-bs-toggle="modal" data-bs-target="#ruleDeleteModal{{ r.pk }}" title="Eliminar">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <div class="card-body">
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      <div class="empty-state-title">Sin reglas en este plan</div>
+      <p class="empty-state-text">Las reglas definen cómo se calculan las comisiones. Crea la primera.</p>
+      <a class="btn btn-primary btn-sm mt-2" href="{% url 'commissions:rule_create' %}?plan={{ plan.pk }}">Crear regla</a>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% else %}
+{# ── Assignments tab ── #}
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Equipos</span>
+        {% if team_assignments %}<span class="badge bg-secondary" style="font-size:0.625rem">{{ team_assignments.count }}</span>{% endif %}
+      </div>
+      <div class="card-body">
+        <form method="post" action="{% url 'commissions:plan_team_add' plan.pk %}" class="vstack gap-2 mb-3">
+          {% csrf_token %}
+          <div>
+            <label class="form-label">{{ team_form.team.label }}</label>
+            {{ team_form.team }}
+          </div>
+          <div class="row g-2">
+            <div class="col-6">
+              <label class="form-label small">{{ team_form.valid_from.label }}</label>
+              {{ team_form.valid_from }}
+            </div>
+            <div class="col-6">
+              <label class="form-label small">{{ team_form.valid_to.label }}</label>
+              {{ team_form.valid_to }}
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm">Añadir equipo</button>
+        </form>
+        <ul class="list-group list-group-flush">
+          {% for a in team_assignments %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <span class="fw-medium">{{ a.team.name }}</span>
+              {% if a.valid_from or a.valid_to %}
+                <span class="text-muted small d-block">{{ a.valid_from|default:"…" }} → {{ a.valid_to|default:"…" }}</span>
+              {% endif %}
+            </div>
+            <form method="post" action="{% url 'commissions:plan_team_remove' plan.pk a.pk %}" class="m-0">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-link btn-sm text-danger p-0" title="Quitar">
+                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </form>
+          </li>
+          {% empty %}
+          <li class="list-group-item text-muted small text-center py-3">Sin equipos asignados.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Empleados</span>
+        {% if employee_assignments %}<span class="badge bg-secondary" style="font-size:0.625rem">{{ employee_assignments.count }}</span>{% endif %}
+      </div>
+      <div class="card-body">
+        <form method="post" action="{% url 'commissions:plan_employee_add' plan.pk %}" class="vstack gap-2 mb-3">
+          {% csrf_token %}
+          <div>
+            <label class="form-label">{{ employee_form.employee.label }}</label>
+            {{ employee_form.employee }}
+          </div>
+          <div class="row g-2">
+            <div class="col-6">
+              <label class="form-label small">{{ employee_form.valid_from.label }}</label>
+              {{ employee_form.valid_from }}
+            </div>
+            <div class="col-6">
+              <label class="form-label small">{{ employee_form.valid_to.label }}</label>
+              {{ employee_form.valid_to }}
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm">Añadir empleado</button>
+        </form>
+        <ul class="list-group list-group-flush">
+          {% for a in employee_assignments %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <span class="fw-medium">{{ a.employee }}</span>
+              {% if a.valid_from or a.valid_to %}
+                <span class="text-muted small d-block">{{ a.valid_from|default:"…" }} → {{ a.valid_to|default:"…" }}</span>
+              {% endif %}
+            </div>
+            <form method="post" action="{% url 'commissions:plan_employee_remove' plan.pk a.pk %}" class="m-0">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-link btn-sm text-danger p-0" title="Quitar">
+                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </form>
+          </li>
+          {% empty %}
+          <li class="list-group-item text-muted small text-center py-3">Sin empleados asignados.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% if plan.is_global %}
+<div class="alert alert-info mt-3">
+  <strong>Plan global:</strong> no requiere asignación de equipos/empleados. Aplica automáticamente según el proyecto del plan y sus fechas de vigencia.
+</div>
+{% endif %}
+{% endif %}
+
+{% for r in rules %}
+<div class="modal fade" id="ruleDeleteModal{{ r.pk }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title fs-5">Eliminar regla</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <p>¿Seguro que quieres eliminar la regla <strong>{{ r.name }}</strong>?</p>
+        <p class="text-danger small mb-0">Las líneas ya calculadas se conservan, pero la regla dejará de aplicarse en futuros cálculos.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <form method="post" action="{% url 'commissions:rule_delete' r.pk %}" class="d-inline">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">Eliminar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+<div class="modal fade" id="planDeleteModal" tabindex="-1" aria-labelledby="planDeleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title fs-5" id="planDeleteModalLabel">Eliminar plan</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-2">¿Seguro que quieres eliminar <strong>{{ plan.name }}</strong>?</p>
+        <p class="text-danger small mb-0">Se eliminarán <strong>{{ rules.count }}</strong> regla(s) y las asignaciones a equipos (<strong>{{ team_assignments.count }}</strong>) y empleados (<strong>{{ employee_assignments.count }}</strong>). Las líneas ya calculadas se conservan.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <form method="post" action="{% url 'commissions:plan_delete' plan.pk %}" class="d-inline">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">Eliminar definitivamente</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

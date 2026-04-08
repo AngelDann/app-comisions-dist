@@ -1,0 +1,53 @@
+<div class="modal-header">
+  <h2 class="modal-title fs-5">Detalle línea #{{ line.pk }}</h2>
+  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+</div>
+<div class="modal-body">
+  <p class="text-muted small mb-3">Empleado: <strong class="text-body">{{ line.employee }}</strong></p>
+
+  <div class="row g-3">
+    <div class="col-md-6">
+      <h6 class="text-uppercase text-muted" style="font-size:0.6875rem;letter-spacing:0.05em">Evento (captura)</h6>
+      <dl class="row mb-0 small">
+        <dt class="col-5 text-muted">ID evento</dt><dd class="col-7">{{ event.pk }}</dd>
+        <dt class="col-5 text-muted">Fecha operación</dt><dd class="col-7">{{ event.occurred_on|date:"Y-m-d" }}</dd>
+        <dt class="col-5 text-muted">Periodo</dt><dd class="col-7">{{ event.period }}</dd>
+        <dt class="col-5 text-muted">Proyecto</dt><dd class="col-7">{{ event.project }}</dd>
+        <dt class="col-5 text-muted">Equipo</dt><dd class="col-7">{{ event.team }}</dd>
+        <dt class="col-5 text-muted">Empleado</dt><dd class="col-7">{{ event.employee }}</dd>
+        <dt class="col-5 text-muted">Tipo comisión</dt><dd class="col-7">{% firstof event.commission_type "—" %}</dd>
+        <dt class="col-5 text-muted">Clase</dt><dd class="col-7"><code>{{ event.event_kind }}</code></dd>
+        <dt class="col-5 text-muted">Monto capturado</dt>
+        <dd class="col-7">{{ event.amount_usd|default:"—" }}{% if event.fx_rate %} <span class="text-muted">({{ event.fx_rate.currency_code }}, TC {{ event.fx_rate.rate_date }})</span>{% endif %}</dd>
+        <dt class="col-5 text-muted">Horas</dt><dd class="col-7">{{ event.hours|default:"—" }}</dd>
+        <dt class="col-5 text-muted">Canal</dt><dd class="col-7">{{ event.sales_channel|default:"—" }}</dd>
+        <dt class="col-5 text-muted">Registró</dt><dd class="col-7">{% if event.created_by %}{{ event.created_by }}{% else %}—{% endif %}</dd>
+        <dt class="col-5 text-muted align-self-start">Notas</dt>
+        <dd class="col-7">
+          {% if event.notes %}
+          <div class="rich-notes-display rich-notes-display--compact">{{ event.notes|safe }}</div>
+          {% else %}—{% endif %}
+        </dd>
+      </dl>
+    </div>
+    <div class="col-md-6">
+      <h6 class="text-uppercase text-muted" style="font-size:0.6875rem;letter-spacing:0.05em">Línea de comisión (cálculo)</h6>
+      <dl class="row mb-3 small">
+        <dt class="col-5 text-muted">ID línea</dt><dd class="col-7">{{ line.pk }}</dd>
+        <dt class="col-5 text-muted">Importe</dt>
+        <dd class="col-7"><strong>{{ line.amount }} {{ line.currency }}</strong></dd>
+        <dt class="col-5 text-muted">Estado</dt>
+        <dd class="col-7">
+          <span class="badge badge-{% if line.state == 'approved' %}approved{% elif line.state == 'rejected' %}rejected{% elif line.state == 'pending' %}pending{% elif line.state == 'pending_approval' %}pending-approval{% elif line.state == 'adjusted' %}adjusted{% elif line.state == 'paid' %}paid{% else %}inactive{% endif %}">{{ line.get_state_display }}</span>
+        </dd>
+        <dt class="col-5 text-muted">Tipo (línea)</dt><dd class="col-7">{% firstof line.commission_type "—" %}</dd>
+        <dt class="col-5 text-muted">Regla</dt><dd class="col-7">{% if line.rule %}{{ line.rule.name }}{% else %}—{% endif %}</dd>
+      </dl>
+      <p class="text-muted mb-1" style="font-size:0.6875rem;text-transform:uppercase;letter-spacing:0.04em">Explicación del cálculo</p>
+      <p class="mb-0 small" style="white-space:pre-wrap">{{ line.calculation_explanation|default:"—" }}</p>
+    </div>
+  </div>
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+</div>

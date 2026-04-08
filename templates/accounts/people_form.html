@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block topbar_title %}{{ title }}{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">{{ title }}</h1>
+    <p class="page-subtitle">Crea el usuario, el rol y el alcance por equipos; opcionalmente la ficha de empleado.</p>
+  </div>
+</div>
+
+<div class="form-page">
+  <div class="form-page-main is-wide">
+    <div class="card">
+      <div class="card-header">Nuevo miembro</div>
+      <div class="card-body">
+        <form method="post" class="vstack gap-0">
+          {% csrf_token %}
+
+          <p class="form-section-label">Acceso</p>
+          <div>
+            <label class="form-label" for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+            {{ form.email.errors }}
+            {{ form.email }}
+          </div>
+
+          <p class="form-section-label">Datos para empleado (opcional)</p>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+              {{ form.first_name.errors }}
+              {{ form.first_name }}
+              {% if form.first_name.help_text %}<div class="form-text">{{ form.first_name.help_text }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+              {{ form.last_name.errors }}
+              {{ form.last_name }}
+            </div>
+          </div>
+          <div class="mt-3">
+            <label class="form-label" for="{{ form.employee_code.id_for_label }}">{{ form.employee_code.label }}</label>
+            {{ form.employee_code.errors }}
+            {{ form.employee_code }}
+            {% if form.employee_code.help_text %}<div class="form-text">{{ form.employee_code.help_text }}</div>{% endif %}
+          </div>
+
+          <p class="form-section-label">Contraseña</p>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.password1.id_for_label }}">{{ form.password1.label }}</label>
+              {{ form.password1.errors }}
+              {{ form.password1 }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
+              {{ form.password2.errors }}
+              {{ form.password2 }}
+            </div>
+          </div>
+
+          <p class="form-section-label">Rol y equipos</p>
+          <div>
+            <label class="form-label" for="{{ form.role.id_for_label }}">{{ form.role.label }}</label>
+            {{ form.role.errors }}
+            {{ form.role }}
+          </div>
+          <div class="row g-3 mt-1">
+            <div class="col-md-6">
+              <label class="form-label">{{ form.teams.label }}</label>
+              {{ form.teams.errors }}
+              <div class="border rounded p-2 bg-white" style="font-size:0.8125rem;max-height:11rem;overflow-y:auto">{{ form.teams }}</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">{{ form.team_leads.label }}</label>
+              {{ form.team_leads.errors }}
+              <div class="border rounded p-2 bg-white" style="font-size:0.8125rem;max-height:11rem;overflow-y:auto">{{ form.team_leads }}</div>
+            </div>
+          </div>
+
+          <p class="form-section-label">Ficha de empleado</p>
+          <div>
+            {{ form.create_employee.errors }}
+            {{ form.create_employee }}
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Crear miembro</button>
+            <a class="btn btn-outline-secondary" href="{% url 'accounts:people_list' %}">Volver</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <aside class="form-aside" aria-label="Ayuda">
+    <div class="form-aside-panel">
+      <h2 class="form-aside-title">Líder de equipo</h2>
+      <p class="form-aside-tip">Marca <strong>líder</strong> solo en equipos donde el usuario ya está asignado; amplía permisos de revisión en ese alcance.</p>
+      <h2 class="form-aside-title" style="margin-top:1rem">Ficha de empleado</h2>
+      <p class="form-aside-tip">Sin ficha no podrás asignarle <strong>eventos de comisión</strong> como empleado titular.</p>
+    </div>
+  </aside>
+</div>
+
+{% endblock %}

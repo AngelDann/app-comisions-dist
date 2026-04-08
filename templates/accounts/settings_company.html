@@ -1,0 +1,24 @@
+{% extends "accounts/settings_layout.html" %}
+{% block title %}Ajustes · Empresa{% endblock %}
+{% block settings_content %}
+<div class="card" style="max-width:600px">
+  <div class="card-header">Datos de la empresa</div>
+  <div class="card-body">
+    <p class="text-muted small">Solo los administradores de la compañía pueden editar esta información.</p>
+    <form method="post" class="vstack gap-3">
+      {% csrf_token %}
+      {% for field in company_form %}
+      <div>
+        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field.errors }}
+        {{ field }}
+        {% if field.name == 'base_currency' %}
+        <div class="form-text">Código ISO de tres letras (por ejemplo MXN, USD).</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary">Guardar empresa</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

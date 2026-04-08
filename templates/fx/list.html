@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Tipo de cambio{% endblock %}
+{% block topbar_title %}Tipo de cambio{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Tipo de cambio</h1>
+    <p class="page-subtitle">Tasas respecto a la moneda base de la compañía (<strong>{{ base_currency }}</strong>): cada valor es cuántas unidades de {{ base_currency }} equivalen a <strong>1</strong> unidad de la moneda indicada (ej. 1 USD = 17.25 {{ base_currency }}).</p>
+  </div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-header">Agregar / actualizar tasa</div>
+  <div class="card-body">
+    <form method="post" action="{% url 'fx:create' %}" class="row g-3 align-items-end"
+          hx-post="{% url 'fx:create' %}"
+          hx-target="#rates-table-wrap"
+          hx-swap="innerHTML">
+      {% csrf_token %}
+      <div class="col-sm-2">
+        <label class="form-label">Moneda</label>
+        <input name="currency_code" class="form-control" value="USD" maxlength="3" placeholder="USD">
+      </div>
+      <div class="col-sm-3">
+        <label class="form-label">Fecha</label>
+        <input type="date" name="rate_date" class="form-control" required value="{{ default_rate_date }}">
+      </div>
+      <div class="col-sm-3">
+        <label class="form-label">Valor <span class="text-muted fw-normal small">(1 moneda → {{ base_currency }})</span></label>
+        <input name="value" class="form-control" required placeholder="ej. 17.250000"
+               title="Unidades de {{ base_currency }} por 1 unidad de la moneda elegida">
+      </div>
+      <div class="col-sm-2">
+        <button type="submit" class="btn btn-primary w-100">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="rates-table-wrap">
+  {% include "fx/partials/rates_table.html" %}
+</div>
+
+{% endblock %}

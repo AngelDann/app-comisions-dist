@@ -1,0 +1,71 @@
+{# Initialize Quill and wire it to the hidden #id_notes field. #}
+<script>
+(function(){
+  var hiddenInput = document.getElementById('id_notes');
+  if (!hiddenInput) return;
+
+  var quill = new Quill('#quillEditor', {
+    theme: 'snow',
+    placeholder: 'Escribe notas, agrega estilos o imágenes…',
+    modules: {
+      toolbar: {
+        container: [
+          [{ 'header': [2, 3, false] }],
+          ['bold', 'italic', 'underline', 'strike'],
+          [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+          ['blockquote'],
+          ['link', 'image'],
+          ['clean']
+        ],
+        handlers: {
+          image: function() {
+            var input = document.createElement('input');
+            input.setAttribute('type', 'file');
+            input.setAttribute('accept', 'image/jpeg,image/png,image/gif,image/webp');
+            input.click();
+            input.onchange = function() {
+              var file = input.files[0];
+              if (!file) return;
+              var fd = new FormData();
+              fd.append('image', file);
+              fetch('{% url "commissions:upload_note_image" %}', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                body: fd
+              })
+              .then(function(r) { return r.json(); })
+              .then(function(data) {
+                if (data.url) {
+                  var range = quill.getSelection(true);
+                  quill.insertEmbed(range.index, 'image', data.url);
+                  quill.setSelection(range.index + 1);
+                } else {
+                  alert(data.error || 'Error al subir imagen');
+                }
+              })
+              .catch(function() { alert('Error de red al subir la imagen'); });
+            };
+          }
+        }
+      }
+    }
+  });
+
+  if (hiddenInput.value) {
+    quill.root.innerHTML = hiddenInput.value;
+  }
+
+  quill.on('text-change', function() {
+    var html = quill.root.innerHTML;
+    hiddenInput.value = (html === '<p><br></p>') ? '' : html;
+  });
+
+  var form = hiddenInput.closest('form');
+  if (form) {
+    form.addEventListener('submit', function() {
+      var html = quill.root.innerHTML;
+      hiddenInput.value = (html === '<p><br></p>') ? '' : html;
+    });
+  }
+})();
+</script>

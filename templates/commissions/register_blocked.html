@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Sin acceso{% endblock %}
+{% block topbar_title %}Registrar evento{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Registrar evento</h1>
+  </div>
+</div>
+
+<div class="alert alert-warning">
+  <strong>No puedes registrar comisiones aún.</strong>
+  <p class="mb-0 mt-1">{{ message }}</p>
+</div>
+
+{% endblock %}

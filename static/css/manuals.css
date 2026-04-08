@@ -1,0 +1,231 @@
+/* Manual de usuario: layout y tipografía del artículo */
+
+.manual-layout {
+  display: grid;
+  grid-template-columns: minmax(240px, 280px) 1fr;
+  gap: 0;
+  min-height: calc(100vh - 64px);
+  align-items: stretch;
+}
+
+@media (max-width: 900px) {
+  .manual-layout {
+    grid-template-columns: 1fr;
+  }
+  .manual-sidebar {
+    border-right: none;
+    border-bottom: 1px solid var(--manual-border, #e7e5e4);
+  }
+}
+
+.manual-sidebar {
+  background: var(--manual-surface2, #f3f1ed);
+  border-right: 1px solid var(--manual-border, #e7e5e4);
+  padding: 1.25rem 1rem 2rem;
+  overflow-y: auto;
+}
+
+.manual-sidebar-title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--manual-text2, #57534e);
+  margin-bottom: 1rem;
+}
+
+.manual-search {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.manual-search input[type="search"],
+.manual-search input[type="text"] {
+  width: 100%;
+  padding: 0.5rem 0.75rem 0.5rem 2.25rem;
+  border: 1px solid var(--manual-border, #e7e5e4);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  background: var(--manual-surface, #fff);
+  color: var(--manual-text, #1c1917);
+}
+
+.manual-search-icon {
+  position: absolute;
+  left: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1rem;
+  height: 1rem;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.manual-search-results {
+  margin-bottom: 1rem;
+  font-size: 0.8125rem;
+}
+
+.manual-search-results ul {
+  list-style: none;
+  padding: 0;
+  margin: 0.35rem 0 0;
+}
+
+.manual-search-results li {
+  margin-bottom: 0.25rem;
+}
+
+.manual-search-results a {
+  color: var(--manual-accent, #b45309);
+}
+
+.manual-nav {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.manual-nav ul {
+  list-style: none;
+  padding: 0 0 0 0.75rem;
+  margin: 0.15rem 0 0.35rem;
+  border-left: 1px solid var(--manual-border, #e7e5e4);
+}
+
+.manual-nav-link {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  padding: 0.35rem 0.25rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: var(--manual-text, #1c1917);
+  text-decoration: none;
+  line-height: 1.35;
+}
+
+.manual-nav-link:hover {
+  background: rgb(0 0 0 / 0.04);
+  color: var(--manual-accent, #b45309);
+}
+
+.manual-nav-link.is-active {
+  background: var(--manual-accent-soft, #fffbeb);
+  color: var(--manual-accent, #b45309);
+  font-weight: 600;
+}
+
+.manual-nav-icon {
+  flex-shrink: 0;
+}
+
+.manual-main {
+  padding: 1.5rem 2rem 3rem;
+  max-width: 52rem;
+  overflow-x: auto;
+}
+
+.manual-main-header {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.25rem;
+  color: var(--manual-text, #1c1917);
+}
+
+.manual-empty {
+  color: var(--manual-text2, #57534e);
+  font-size: 0.9375rem;
+}
+
+.manual-prose {
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: var(--manual-text, #1c1917);
+}
+
+.manual-prose h1,
+.manual-prose h2,
+.manual-prose h3 {
+  margin: 1.25em 0 0.5em;
+  line-height: 1.25;
+  font-weight: 700;
+}
+
+.manual-prose h1 {
+  font-size: 1.5rem;
+}
+
+.manual-prose h2 {
+  font-size: 1.25rem;
+}
+
+.manual-prose h3 {
+  font-size: 1.1rem;
+}
+
+.manual-prose p {
+  margin: 0 0 0.85em;
+}
+
+.manual-prose ul,
+.manual-prose ol {
+  margin: 0 0 0.85em 1.25rem;
+}
+
+.manual-prose pre {
+  background: var(--manual-surface2, #f3f1ed);
+  border: 1px solid var(--manual-border, #e7e5e4);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  overflow-x: auto;
+  font-size: 0.8125rem;
+}
+
+.manual-prose code {
+  font-family: var(--manual-mono, ui-monospace, monospace);
+  font-size: 0.875em;
+}
+
+.manual-prose pre code {
+  font-size: 0.8125rem;
+}
+
+.manual-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  margin: 1em 0;
+}
+
+.manual-prose th,
+.manual-prose td {
+  border: 1px solid var(--manual-border, #e7e5e4);
+  padding: 0.5rem 0.65rem;
+  text-align: left;
+}
+
+.manual-prose th {
+  background: var(--manual-surface2, #f3f1ed);
+}
+
+.manual-prose a {
+  color: var(--manual-accent, #b45309);
+}
+
+.manual-prose blockquote {
+  margin: 1em 0;
+  padding-left: 1rem;
+  border-left: 3px solid var(--manual-border2, #d6d3d1);
+  color: var(--manual-text2, #57534e);
+}
+
+/* Variante dentro de la app (Bootstrap / app.css) */
+.app-main .manual-layout {
+  min-height: auto;
+}
+
+.app-main .manual-main {
+  padding-top: 0.5rem;
+}

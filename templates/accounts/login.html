@@ -1,0 +1,32 @@
+{% extends "base_auth.html" %}
+{% block title %}Iniciar sesión{% endblock %}
+{% block content %}
+<div class="auth-card">
+  <div class="auth-logo">
+    <div class="auth-logo-icon">
+      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    </div>
+    <p class="auth-logo-title">Comisiones</p>
+    <p class="auth-logo-sub">Ingresa a tu cuenta</p>
+  </div>
+
+  <form method="post" class="vstack gap-3">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+    {% endif %}
+    {% for field in form %}
+      <div>
+        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {{ field.errors }}
+      </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary w-100 mt-1">Iniciar sesión</button>
+  </form>
+
+  <p class="text-center mt-3 mb-0" style="font-size:0.8125rem; color:var(--app-text-3)">
+    <a href="{% url 'accounts:register_company' %}" style="color:var(--app-primary)">Registrar nueva compañía</a>
+  </p>
+</div>
+{% endblock %}

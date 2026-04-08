@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Detalle línea #{{ line.pk }}{% endblock %}
+{% block topbar_title %}Detalle de comisión{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Registro y cálculo</h1>
+    <p class="page-subtitle">Evento capturado y línea generada por el motor. Empleado: <strong>{{ line.employee }}</strong>.</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-outline-secondary btn-sm" href="{{ back_url }}">Volver</a>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header">Evento (captura)</div>
+      <div class="card-body small">
+        <dl class="row mb-0">
+          <dt class="col-sm-4 text-muted">ID evento</dt><dd class="col-sm-8">{{ event.pk }}</dd>
+          <dt class="col-sm-4 text-muted">Fecha operación</dt><dd class="col-sm-8">{{ event.occurred_on|date:"Y-m-d" }}</dd>
+          <dt class="col-sm-4 text-muted">Periodo</dt><dd class="col-sm-8">{{ event.period }}</dd>
+          <dt class="col-sm-4 text-muted">Proyecto</dt><dd class="col-sm-8">{{ event.project }}</dd>
+          <dt class="col-sm-4 text-muted">Equipo</dt><dd class="col-sm-8">{{ event.team }}</dd>
+          <dt class="col-sm-4 text-muted">Empleado</dt><dd class="col-sm-8">{{ event.employee }}</dd>
+          <dt class="col-sm-4 text-muted">Tipo comisión</dt><dd class="col-sm-8">{% firstof event.commission_type "—" %}</dd>
+          <dt class="col-sm-4 text-muted">Clase / actividad</dt><dd class="col-sm-8"><code>{{ event.event_kind }}</code></dd>
+          <dt class="col-sm-4 text-muted">Monto capturado</dt><dd class="col-sm-8">{{ event.amount_usd|default:"—" }}{% if event.fx_rate %} <span class="text-muted">({{ event.fx_rate.currency_code }}, TC {{ event.fx_rate.rate_date }})</span>{% endif %}</dd>
+          <dt class="col-sm-4 text-muted">Horas</dt><dd class="col-sm-8">{{ event.hours|default:"—" }}</dd>
+          <dt class="col-sm-4 text-muted">Canal</dt><dd class="col-sm-8">{{ event.sales_channel|default:"—" }}</dd>
+          <dt class="col-sm-4 text-muted">Registró</dt><dd class="col-sm-8">{% if event.created_by %}{{ event.created_by }}{% else %}—{% endif %}</dd>
+          <dt class="col-sm-4 text-muted align-self-start">Notas</dt>
+          <dd class="col-sm-8" style="white-space:pre-wrap">{{ event.notes|default:"—" }}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header">Línea de comisión (cálculo)</div>
+      <div class="card-body small">
+        <dl class="row mb-3">
+          <dt class="col-sm-4 text-muted">ID línea</dt><dd class="col-sm-8">{{ line.pk }}</dd>
+          <dt class="col-sm-4 text-muted">Importe</dt><dd class="col-sm-8"><strong>{{ line.amount }} {{ line.currency }}</strong> <span class="text-muted">(ref. compañía {{ summary_base_currency }})</span></dd>
+          <dt class="col-sm-4 text-muted">Estado</dt>
+          <dd class="col-sm-8">
+            <span class="badge badge-{% if line.state == 'approved' %}approved{% elif line.state == 'rejected' %}rejected{% elif line.state == 'pending' %}pending{% elif line.state == 'pending_approval' %}pending-approval{% elif line.state == 'adjusted' %}adjusted{% elif line.state == 'paid' %}paid{% else %}inactive{% endif %}">{{ line.get_state_display }}</span>
+          </dd>
+          <dt class="col-sm-4 text-muted">Tipo (línea)</dt><dd class="col-sm-8">{% firstof line.commission_type "—" %}</dd>
+          <dt class="col-sm-4 text-muted">Regla</dt><dd class="col-sm-8">{% if line.rule %}{{ line.rule.name }}{% else %}—{% endif %}</dd>
+        </dl>
+        <p class="text-muted mb-1" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.04em">Explicación del cálculo</p>
+        <p class="mb-0" style="white-space:pre-wrap;font-size:0.875rem">{{ line.calculation_explanation|default:"—" }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if show_line_state_actions %}
+<div class="card mt-4">
+  <div class="card-header">Cambiar estado</div>
+  <div class="card-body d-flex flex-wrap gap-2">
+    {% if line.state != 'approved' and line.state != 'paid' %}
+    <form method="post" action="{% url 'commissions:line_set_state' line.pk 'approved' %}" class="d-inline">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.get_full_path }}">
+      <button type="submit" class="btn btn-sm btn-outline-success">Aprobar</button>
+    </form>
+    {% endif %}
+    {% if line.state != 'rejected' %}
+    <form method="post" action="{% url 'commissions:line_set_state' line.pk 'rejected' %}" class="d-inline">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.get_full_path }}">
+      <button type="submit" class="btn btn-sm btn-outline-danger">Rechazar</button>
+    </form>
+    {% endif %}
+    {% if line.state != 'pending' %}
+    <form method="post" action="{% url 'commissions:line_set_state' line.pk 'pending' %}" class="d-inline">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.get_full_path }}">
+      <button type="submit" class="btn btn-sm btn-outline-secondary">Marcar pendiente</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% elif nav_commission_auditor %}
+<p class="text-muted small mt-3 mb-0">Tu rol es de auditoría (solo lectura); no puedes cambiar el estado de la línea.</p>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,39 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% if current_page %}{{ current_page.title }} — {% endif %}Manual de usuario</title>
+  <meta name="theme-color" content="#F9F8F6">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/landing-nav.css' %}">
+  <link rel="stylesheet" href="{% static 'css/manuals.css' %}">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html { font-size: 16px; }
+    body {
+      margin: 0;
+      font-family: var(--ln-font, 'IBM Plex Sans', system-ui, sans-serif);
+      background: var(--ln-bg, #f9f8f6);
+      color: var(--ln-text, #1c1917);
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body class="has-fixed-landing-nav">
+  {% include "partials/landing_topnav.html" with manual_nav_active=True %}
+  {% include "manuals/_split_content.html" %}
+  <script>
+    const nav = document.getElementById('lnNav');
+    if (nav) {
+      window.addEventListener('scroll', () => {
+        nav.classList.toggle('is-scrolled', window.scrollY > 20);
+      }, { passive: true });
+    }
+  </script>
+</body>
+</html>

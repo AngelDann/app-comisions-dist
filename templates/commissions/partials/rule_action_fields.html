@@ -1,0 +1,125 @@
+{# HTMX fragment: action parameter fields by action_type. #}
+<div class="action-params-inner vstack gap-3">
+  {% if action_type == "percent_of_amount" %}
+    <div>
+      <label class="form-label" for="id_percent">Porcentaje (%)</label>
+      <div class="input-group" style="max-width:14rem">
+        <input type="text" name="percent" class="form-control" id="id_percent" inputmode="decimal"
+               value="{% if repop %}{{ repop.percent }}{% else %}{{ initial.percent|default:'' }}{% endif %}"
+               placeholder="ej. 20">
+        <span class="input-group-text">%</span>
+      </div>
+      <div class="form-text">Porcentaje del monto del evento (amount_usd).</div>
+    </div>
+
+  {% elif action_type == "fixed_per_event" %}
+    <div>
+      <label class="form-label" for="id_amount">Monto fijo por evento</label>
+      <div class="input-group" style="max-width:14rem">
+        <span class="input-group-text">$</span>
+        <input type="text" name="amount" class="form-control" id="id_amount" inputmode="decimal"
+               value="{% if repop %}{{ repop.amount }}{% else %}{{ initial.amount|default:'' }}{% endif %}"
+               placeholder="ej. 500">
+      </div>
+    </div>
+
+  {% elif action_type == "tiered_percent" %}
+    <p class="form-text mb-2">El motor aplica el porcentaje del primer tramo cuyo rango contenga el monto del evento.</p>
+    <div class="table-responsive">
+      <table class="table table-sm align-middle mb-0">
+        <thead>
+          <tr>
+            <th style="font-size:0.6875rem">Mín (USD)</th>
+            <th style="font-size:0.6875rem">Máx (USD)</th>
+            <th style="font-size:0.6875rem">%</th>
+          </tr>
+        </thead>
+        <tbody id="tier-rows-body">
+          {% for row in tier_display_rows %}
+            <tr class="tier-row">
+              <td><input type="text" class="form-control form-control-sm" name="ap_tier_{{ row.i }}_min" inputmode="decimal" value="{{ row.min }}" placeholder="0"></td>
+              <td><input type="text" class="form-control form-control-sm" name="ap_tier_{{ row.i }}_max" placeholder="sin tope" inputmode="decimal" value="{{ row.max }}"></td>
+              <td><input type="text" class="form-control form-control-sm" name="ap_tier_{{ row.i }}_percent" inputmode="decimal" value="{{ row.percent }}" placeholder="10"></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <button type="button" class="btn btn-sm btn-outline-secondary mt-2" id="btn-add-tier-row">
+      <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Añadir tramo
+    </button>
+
+  {% elif action_type == "unlock_bonus_if_threshold" %}
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label" for="id_threshold_amount">Umbral (USD)</label>
+        <div class="input-group">
+          <span class="input-group-text">$</span>
+          <input type="text" name="threshold_amount" class="form-control" id="id_threshold_amount" inputmode="decimal"
+                 value="{% if repop %}{{ repop.threshold_amount }}{% else %}{{ initial.threshold_amount|default:'' }}{% endif %}">
+        </div>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label" for="id_bonus_amount">Bono a otorgar</label>
+        <div class="input-group">
+          <span class="input-group-text">$</span>
+          <input type="text" name="bonus_amount" class="form-control" id="id_bonus_amount" inputmode="decimal"
+                 value="{% if repop %}{{ repop.bonus_amount }}{% else %}{{ initial.bonus_amount|default:'' }}{% endif %}">
+        </div>
+      </div>
+    </div>
+    <div class="form-text">Cuando el monto acumulado supera el umbral, se otorga el bono una vez.</div>
+
+  {% elif action_type == "split_pool_among" %}
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label" for="id_pool_amount">Monto total de la bolsa</label>
+        <div class="input-group">
+          <span class="input-group-text">$</span>
+          <input type="text" name="pool_amount" class="form-control" id="id_pool_amount" inputmode="decimal"
+                 value="{% if repop %}{{ repop.pool_amount }}{% else %}{{ initial.pool_amount|default:'' }}{% endif %}">
+        </div>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label" for="id_employee_ids">IDs de empleados</label>
+        <input type="text" name="employee_ids" class="form-control" id="id_employee_ids"
+               value="{% if repop %}{{ repop.employee_ids }}{% else %}{{ initial.employee_ids|default:'' }}{% endif %}"
+               placeholder="1, 2, 3">
+        <div class="form-text">Separados por coma</div>
+      </div>
+    </div>
+
+  {% elif action_type == "penalty_percent_next_period" %}
+    <div>
+      <label class="form-label" for="id_penalty_percent">Porcentaje de penalización</label>
+      <div class="input-group" style="max-width:14rem">
+        <input type="text" name="percent" class="form-control" id="id_penalty_percent" inputmode="decimal"
+               value="{% if repop %}{{ repop.percent }}{% else %}{{ initial.percent|default:'' }}{% endif %}">
+        <span class="input-group-text">%</span>
+      </div>
+      <div class="form-text">Se aplica como descuento en el siguiente periodo.</div>
+    </div>
+
+  {% elif action_type == "require_approval" %}
+    <div>
+      <label class="form-label" for="id_req_msg">Mensaje de aprobación</label>
+      <textarea name="message" class="form-control" id="id_req_msg" rows="2"
+                placeholder="Opcional: indica al aprobador qué revisar">{% if repop %}{{ repop.message }}{% else %}{{ initial.message|default:'' }}{% endif %}</textarea>
+    </div>
+
+  {% elif action_type == "fixed_per_client" %}
+    <div>
+      <label class="form-label" for="id_amount_per_client">Monto por cliente</label>
+      <div class="input-group" style="max-width:14rem">
+        <span class="input-group-text">$</span>
+        <input type="text" name="amount_per_client" class="form-control" id="id_amount_per_client" inputmode="decimal"
+               value="{% if repop %}{{ repop.amount_per_client }}{% else %}{{ initial.amount_per_client|default:'' }}{% endif %}">
+      </div>
+      <div class="form-text">Se multiplica por el conteo de clientes del evento.</div>
+    </div>
+
+  {% else %}
+    <p class="text-muted small mb-0">Selecciona un tipo de acción para configurar sus parámetros.</p>
+  {% endif %}
+</div>

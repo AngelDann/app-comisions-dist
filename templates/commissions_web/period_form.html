@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block topbar_title %}{{ title }}{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">{{ title }}</h1>
+    <p class="page-subtitle">El periodo agrupa eventos y líneas para revisión y cierre.</p>
+  </div>
+</div>
+
+<div class="form-page">
+  <div class="form-page-main">
+    <div class="card">
+      <div class="card-header">Periodo de comisión</div>
+      <div class="card-body">
+        <form method="post" class="vstack gap-0">
+          {% csrf_token %}
+
+          <p class="form-section-label">Identificación</p>
+          <div>
+            <label class="form-label" for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+            {{ form.name.errors }}
+            {{ form.name }}
+          </div>
+
+          <p class="form-section-label">Fechas</p>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.start_date.id_for_label }}">{{ form.start_date.label }}</label>
+              {{ form.start_date.errors }}
+              {{ form.start_date }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.end_date.id_for_label }}">{{ form.end_date.label }}</label>
+              {{ form.end_date.errors }}
+              {{ form.end_date }}
+            </div>
+          </div>
+
+          <p class="form-section-label">Estado y tipo de cambio</p>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.state.id_for_label }}">{{ form.state.label }}</label>
+              {{ form.state.errors }}
+              {{ form.state }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.fx_policy.id_for_label }}">{{ form.fx_policy.label }}</label>
+              {{ form.fx_policy.errors }}
+              {{ form.fx_policy }}
+            </div>
+          </div>
+
+          <div class="form-check mt-3">
+            {{ form.is_locked }}
+            <label class="form-check-label" for="{{ form.is_locked.id_for_label }}">{{ form.is_locked.label }}</label>
+            {{ form.is_locked.errors }}
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Guardar</button>
+            <a class="btn btn-outline-secondary" href="{% url 'commissions_web:period_list' %}">Volver</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <aside class="form-aside" aria-label="Ayuda">
+    <div class="form-aside-panel">
+      <h2 class="form-aside-title">Estados</h2>
+      <p class="form-aside-tip"><strong>Borrador</strong> permite cambios; <strong>En revisión</strong> señala cierre operativo; <strong>Cerrado</strong> congela el periodo para auditoría.</p>
+      <h2 class="form-aside-title" style="margin-top:1rem">Tipo de cambio</h2>
+      <p class="form-aside-tip"><strong>Fecha de operación</strong> usa la fecha del evento al convertir moneda; <strong>Fin de periodo</strong> usa una tasa al cierre del rango.</p>
+      <p class="form-aside-tip"><strong>Bloqueado</strong> impide recálculos o cambios masivos según tus políticas internas.</p>
+    </div>
+  </aside>
+</div>
+
+{% endblock %}

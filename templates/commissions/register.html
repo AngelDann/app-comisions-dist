@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Registrar evento{% endblock %}
+{% block topbar_title %}Registrar evento{% endblock %}
+{% block extra_head %}{% include "commissions/partials/rich_notes_assets.html" %}{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Registrar evento</h1>
+    <p class="page-subtitle">El esquema viene del proyecto; las reglas y fórmula se aplican al guardar. Opcionalmente elige un tipo de cambio de la compañía si el monto no está en moneda base ({{ active_company.base_currency|default:"MXN" }}).</p>
+  </div>
+</div>
+
+{% if register_context_banner %}
+<div class="alert alert-light mb-4">{{ register_context_banner }}</div>
+{% endif %}
+
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="card">
+      <div class="card-header">Nuevo evento</div>
+      <div class="card-body">
+        <form method="post" class="vstack gap-3">
+          {% csrf_token %}
+          {% for field in form %}
+            {% if field.name == 'team' %}
+              {# rendered inside project block #}
+            {% elif field.name == 'project' %}
+            <div>
+              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field.errors }}
+              <select name="{{ field.name }}" id="{{ field.id_for_label }}" class="form-select"
+                      hx-get="{% url 'commissions:htmx_register_cascade' %}"
+                      hx-swap="none"
+                      hx-include="#{{ field.id_for_label }}"
+                      hx-trigger="change">
+                {% for val, label in field.field.choices %}
+                  <option value="{{ val }}"{% if field.value == val or field.value|stringformat:"s" == val|stringformat:"s" %} selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div id="team-select-wrap">
+              <label class="form-label" for="{{ form.team.id_for_label }}">Equipo</label>
+              {{ form.team.errors }}
+              <select name="team" id="{{ form.team.id_for_label }}" class="form-select">
+                {% for val, label in form.team.field.choices %}
+                  <option value="{{ val }}"{% if form.team.value == val or form.team.value|stringformat:"s" == val|stringformat:"s" %} selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            {% elif field.name == 'commission_type' %}
+            <div id="commission-type-wrap">
+              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field.errors }}
+              {{ field }}
+            </div>
+            {% elif field.name == 'notes' %}
+            {{ field }}
+            {% include "commissions/partials/rich_notes_editor.html" %}
+            {% else %}
+            <div>
+              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field.errors }}
+              {{ field }}
+            </div>
+            {% endif %}
+          {% endfor %}
+          <div class="d-flex gap-2 pt-1">
+            <button type="submit" class="btn btn-primary">Guardar evento</button>
+          </div>
+        </form>
+        <p class="form-text mt-2 mb-0">Al guardar se ejecuta el motor de reglas sobre el evento.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="table-card">
+      <div class="px-3 py-2" style="border-bottom:1px solid var(--app-border)">
+        <span style="font-size:0.8125rem;font-weight:600;color:var(--app-text)">Últimos eventos</span>
+        <span class="text-muted small ms-2">edición con guardado automático</span>
+        {% if nav_company_wide or nav_commission_auditor %}
+        <span class="text-muted small ms-2 d-none d-md-inline">— como admin, encargado o auditor ves también tipo de comisión y notas.</span>
+        {% endif %}
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Fecha</th>
+              <th>Proyecto</th>
+              <th>Empleado</th>
+              <th>Monto</th>
+              <th>Clase</th>
+              {% if nav_company_wide or nav_commission_auditor %}
+              <th>Tipo comisión</th>
+              <th>Notas</th>
+              {% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for e in recent_events %}
+              {% include "commissions/partials/event_row.html" with event=e %}
+            {% empty %}
+              <tr class="tbl-empty"><td colspan="{% if nav_company_wide or nav_commission_auditor %}8{% else %}6{% endif %}">Sin eventos recientes.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}{% include "commissions/partials/rich_notes_init.html" %}{% endblock %}

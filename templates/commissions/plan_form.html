@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block topbar_title %}{{ title }}{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">{{ title }}</h1>
+    <p class="page-subtitle">Define alcance del plan; las reglas se gestionan en el detalle del plan.</p>
+  </div>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-body">
+        <form method="post" class="vstack gap-3">
+          {% csrf_token %}
+          <div>
+            <label class="form-label" for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+            {{ form.name.errors }}{{ form.name }}
+          </div>
+          <div>
+            <label class="form-label" for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+            {{ form.description.errors }}{{ form.description }}
+          </div>
+          <div>
+            <label class="form-label" for="{{ form.project.id_for_label }}">{{ form.project.label }}</label>
+            {{ form.project.errors }}{{ form.project }}
+            <div class="form-text">Opcional. Para planes globales, limita el plan a un producto.</div>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.valid_from.id_for_label }}">{{ form.valid_from.label }}</label>
+              {{ form.valid_from.errors }}{{ form.valid_from }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.valid_to.id_for_label }}">{{ form.valid_to.label }}</label>
+              {{ form.valid_to.errors }}{{ form.valid_to }}
+            </div>
+          </div>
+          <div class="d-flex flex-wrap gap-3">
+            <div class="form-check">
+              {{ form.is_active }}
+              <label class="form-check-label" for="{{ form.is_active.id_for_label }}">{{ form.is_active.label }}</label>
+            </div>
+            <div class="form-check">
+              {{ form.is_global }}
+              <label class="form-check-label" for="{{ form.is_global.id_for_label }}">{{ form.is_global.label }}</label>
+            </div>
+          </div>
+          <div class="form-actions pt-2">
+            <button type="submit" class="btn btn-primary">Guardar</button>
+            <a class="btn btn-outline-secondary" href="{% url 'commissions:plan_list' %}">Volver</a>
+            {% if plan %}
+            <a class="btn btn-outline-secondary" href="{% url 'commissions:plan_detail' plan.pk %}">Detalle</a>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

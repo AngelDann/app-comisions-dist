@@ -1,0 +1,6 @@
+<label class="form-label" for="id_team">Equipo</label>
+<select name="team" id="id_team" class="form-select">
+  {% for val, label in teams %}
+    <option value="{{ val }}" {% if selected == val %}selected{% endif %}>{{ label }}</option>
+  {% endfor %}
+</select>

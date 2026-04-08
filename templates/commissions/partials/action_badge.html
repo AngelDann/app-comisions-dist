@@ -1,0 +1,20 @@
+{# Renders a styled badge for action_type. Usage: {% include ... with action_type=r.action_type %} #}
+{% if action_type == "percent_of_amount" %}
+  <span class="action-badge action-badge--percent">% Monto</span>
+{% elif action_type == "fixed_per_event" %}
+  <span class="action-badge action-badge--fixed">Fijo / evento</span>
+{% elif action_type == "tiered_percent" %}
+  <span class="action-badge action-badge--tiered">Tramos %</span>
+{% elif action_type == "unlock_bonus_if_threshold" %}
+  <span class="action-badge action-badge--bonus">Bono umbral</span>
+{% elif action_type == "split_pool_among" %}
+  <span class="action-badge action-badge--pool">Bolsa repartida</span>
+{% elif action_type == "penalty_percent_next_period" %}
+  <span class="action-badge action-badge--penalty">Penalización</span>
+{% elif action_type == "require_approval" %}
+  <span class="action-badge action-badge--approval">Aprobación</span>
+{% elif action_type == "fixed_per_client" %}
+  <span class="action-badge action-badge--fixed">Fijo / cliente</span>
+{% else %}
+  <span class="action-badge action-badge--default">{{ action_type }}</span>
+{% endif %}

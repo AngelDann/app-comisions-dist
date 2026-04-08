@@ -1,0 +1,49 @@
+{% extends "accounts/settings_layout.html" %}
+{% block title %}Ajustes · Cuenta{% endblock %}
+{% block settings_content %}
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header">Datos de la cuenta</div>
+      <div class="card-body">
+        <p class="text-muted small mb-3">Correo de acceso: <strong>{{ settings_account_email }}</strong></p>
+        <form method="post" class="vstack gap-3">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="details">
+          {% for field in user_form %}
+          <div>
+            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field.errors }}
+            {{ field }}
+          </div>
+          {% endfor %}
+          <button type="submit" class="btn btn-primary">Guardar datos</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header">Cambiar contraseña</div>
+      <div class="card-body">
+        <form method="post" class="vstack gap-3">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="password">
+          {% if password_form.non_field_errors %}
+          <div class="alert alert-danger">{{ password_form.non_field_errors }}</div>
+          {% endif %}
+          {% for field in password_form %}
+          <div>
+            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field.errors }}
+            {{ field }}
+            {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+          </div>
+          {% endfor %}
+          <button type="submit" class="btn btn-primary">Actualizar contraseña</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

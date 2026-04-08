@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Manual de usuario{% if current_page %} — {{ current_page.title }}{% endif %}{% endblock %}
+{% block topbar_title %}Manual de usuario{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'css/manuals.css' %}">
+  <style>
+    :root {
+      --manual-surface2: #f3f1ed;
+      --manual-border: #e7e5e4;
+      --manual-border2: #d6d3d1;
+      --manual-text: #1c1917;
+      --manual-text2: #57534e;
+      --manual-accent: #b45309;
+      --manual-accent-soft: #fffbeb;
+      --manual-mono: 'IBM Plex Mono', ui-monospace, monospace;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  {% include "manuals/_split_content.html" %}
+{% endblock %}

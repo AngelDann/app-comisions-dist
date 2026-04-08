@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block topbar_title %}{{ title }}{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">{{ title }}</h1>
+    <p class="page-subtitle">Define el esquema de comisión; luego actívalo por proyecto.</p>
+  </div>
+</div>
+
+<div class="form-page">
+  <div class="form-page-main">
+    <div class="card">
+      <div class="card-header">Datos del tipo</div>
+      <div class="card-body">
+        <form method="post" class="vstack gap-0">
+          {% csrf_token %}
+
+          <p class="form-section-label">Identificación</p>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+              {{ form.name.errors }}
+              {{ form.name }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.slug.id_for_label }}">{{ form.slug.label }}</label>
+              {{ form.slug.errors }}
+              {{ form.slug }}
+              <div class="form-text">Opcional: si lo dejas vacío se genera a partir del nombre.</div>
+            </div>
+          </div>
+
+          <p class="form-section-label">Descripción</p>
+          <div>
+            <label class="form-label" for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+            {{ form.description.errors }}
+            {{ form.description }}
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Guardar</button>
+            <a class="btn btn-outline-secondary" href="{% url 'commissions_web:commission_type_list' %}">Volver</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <aside class="form-aside" aria-label="Ayuda">
+    <div class="form-aside-panel">
+      <h2 class="form-aside-title">Buenas prácticas</h2>
+      <p class="form-aside-tip"><strong>Slug</strong> es el identificador estable en reglas y reportes. Evita cambiarlo si ya hay eventos o reglas que lo referencian.</p>
+      <p class="form-aside-tip"><strong>Nombre</strong> es lo que ven los usuarios al registrar eventos; usa un término claro para el negocio (ej. “Venta cerrada”, “Horas facturables”).</p>
+      <p class="form-aside-tip">Después de crear el tipo, actívalo en <strong>Proyectos</strong> desde la vista de edición del tipo para que aparezca al registrar comisiones.</p>
+    </div>
+  </aside>
+</div>
+
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base_auth.html" %}
+{% block title %}Registro no disponible{% endblock %}
+{% block content %}
+<div class="auth-card">
+  <div class="auth-logo">
+    <div class="auth-logo-icon" style="background:var(--app-warning)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+    <p class="auth-logo-title">Registro cerrado</p>
+    <p class="auth-logo-sub">El alta de nuevas compañías está desactivada en este entorno. Contacta al administrador.</p>
+  </div>
+  <a href="{% url 'accounts:login' %}" class="btn btn-outline-secondary w-100">Ir al inicio de sesión</a>
+</div>
+{% endblock %}

@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %}Resumen por empleado{% endblock %}
+{% block topbar_title %}Resumen por empleado{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Resumen por empleado</h1>
+    <p class="page-subtitle">Líneas de comisión por empleado con estado y acciones de aprobación.</p>
+    <p class="text-muted small mb-0 mt-1" style="max-width:44rem">
+      <strong>Pendiente</strong>: el motor ya calculó el monto; falta revisión o cierre operativo.
+      <strong>Pendiente aprobación</strong>: una regla (p. ej. “requiere aprobación”) dejó la línea a la espera de validación explícita antes de tratarla como lista para pago.
+    </p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'commissions:export_summary' %}?{{ request.GET.urlencode }}">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Exportar Excel
+    </a>
+  </div>
+</div>
+
+<form method="get" class="filter-bar">
+  {% for field in form %}
+    <div>
+      <label class="form-label">{{ field.label }}</label>
+      {{ field }}
+    </div>
+  {% endfor %}
+  <div>
+    <label class="form-label" style="visibility:hidden">-</label>
+    <button type="submit" class="btn btn-primary btn-sm d-block">Filtrar</button>
+  </div>
+</form>
+
+{% for row in rows %}
+<div class="table-card mb-3">
+  <div class="d-flex align-items-center justify-content-between px-3 py-2" style="border-bottom:1px solid var(--app-border)">
+    <span style="font-weight:600;color:var(--app-text);font-size:0.875rem">{{ row.employee }}</span>
+    <span class="badge" style="background:var(--app-primary-subtle);color:var(--app-primary-text);border:1px solid #BFDBFE;font-size:0.8125rem;padding:0.3em 0.75em">
+      Total: {{ row.total }} {{ summary_base_currency }}
+    </span>
+  </div>
+  <ul class="list-group list-group-flush">
+    {% for line in row.lines %}
+      <li class="list-group-item">
+        <div class="d-flex align-items-start gap-2 gap-md-3 flex-wrap">
+          {% if nav_company_wide or nav_commission_auditor or line.event.team_id in nav_team_lead_ids or nav_linked_employee_id == line.employee_id %}
+          <div class="flex-shrink-0" style="padding-top:1px">
+            <button type="button" class="btn btn-sm btn-outline-secondary"
+                    hx-get="{% url 'commissions:line_detail_modal' line.pk %}"
+                    hx-target="#lineDetailModalContent"
+                    hx-swap="innerHTML"
+                    data-bs-toggle="modal"
+                    data-bs-target="#lineDetailModal">Más detalles</button>
+          </div>
+          {% endif %}
+          <span class="text-muted flex-grow-1" style="min-width:min(100%,12rem)">{{ line.calculation_explanation|truncatechars:90 }}</span>
+          <div class="d-flex align-items-center gap-2 flex-shrink-0 ms-md-auto">
+            <span style="font-weight:600;color:var(--app-text)">{{ line.amount }} {{ line.currency }}</span>
+            {% if line.event.fx_rate %}
+            <span class="text-muted small" title="Tipo de cambio aplicado al evento">TC {{ line.event.fx_rate.currency_code }} {{ line.event.fx_rate.rate_date }} ({{ line.event.fx_rate.value }})</span>
+            {% endif %}
+            <span class="badge badge-{% if line.state == 'approved' %}approved{% elif line.state == 'rejected' %}rejected{% elif line.state == 'pending' %}pending{% elif line.state == 'pending_approval' %}pending-approval{% elif line.state == 'adjusted' %}adjusted{% elif line.state == 'paid' %}paid{% else %}inactive{% endif %}">
+              {{ line.get_state_display }}
+            </span>
+          </div>
+        </div>
+        {% if nav_company_wide or nav_commission_auditor or line.event.team_id in nav_team_lead_ids or nav_linked_employee_id == line.employee_id %}
+        <div class="mt-2 small text-muted border-top pt-2" style="border-color:var(--app-border)!important;line-height:1.45">
+          <span class="text-body-secondary">Evento</span>
+          <strong class="text-body">#{{ line.event_id }}</strong>
+          · fecha <strong class="text-body">{{ line.event.occurred_on|date:"Y-m-d" }}</strong>
+          · tipo comisión <strong class="text-body">{% firstof line.commission_type line.event.commission_type "—" %}</strong>
+          · clase <code class="small">{{ line.event.event_kind }}</code>
+          {% if line.event.notes %}
+          <button type="button" class="btn btn-sm btn-outline-secondary ms-1 py-0 px-1"
+                  style="font-size:0.6875rem;vertical-align:baseline"
+                  data-bs-toggle="modal"
+                  data-bs-target="#notesModal-{{ line.event_id }}">
+            Ver notas
+          </button>
+          {% endif %}
+        </div>
+        {% if not nav_commission_auditor %}
+        {% if nav_company_wide or line.event.team_id in nav_team_lead_ids %}
+        <div class="d-flex flex-wrap gap-1 mt-2 justify-content-end align-items-center" role="group" aria-label="Cambiar estado de la línea">
+        <span class="d-inline-flex flex-wrap gap-1">
+          {% if line.state != 'approved' and line.state != 'paid' %}
+          <form method="post" action="{% url 'commissions:line_set_state' line.pk 'approved' %}" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button type="submit" class="btn btn-sm btn-outline-success">Aprobar</button>
+          </form>
+          {% endif %}
+          {% if line.state != 'rejected' %}
+          <form method="post" action="{% url 'commissions:line_set_state' line.pk 'rejected' %}" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button type="submit" class="btn btn-sm btn-outline-danger">Rechazar</button>
+          </form>
+          {% endif %}
+          {% if line.state != 'pending' %}
+          <form method="post" action="{% url 'commissions:line_set_state' line.pk 'pending' %}" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button type="submit" class="btn btn-sm btn-outline-secondary" title="Pasa a estado Pendiente (calculado, sin cierre)">Marcar pendiente</button>
+          </form>
+          {% endif %}
+        </span>
+        </div>
+        {% endif %}
+        {% endif %}
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+</div>
+{% empty %}
+<div class="table-card">
+  <div class="empty-state">
+    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+    <p class="empty-state-title">Sin datos</p>
+    <p class="empty-state-text">No hay resultados para los filtros seleccionados.</p>
+    {% if events_without_lines_count %}
+    <p class="empty-state-text" style="margin-top:0.75rem;max-width:36rem">
+      {% if events_without_lines_count == 1 %}
+      Hay 1 evento de comisión registrado en este alcance, pero aún no se generaron líneas.
+      {% else %}
+      Hay {{ events_without_lines_count }} eventos de comisión registrados en este alcance, pero aún no se generaron líneas.
+      {% endif %}
+      Este resumen muestra líneas calculadas por el motor (reglas y planes vigentes para la fecha del evento, con el tipo de comisión activo en el proyecto).
+      Revisa reglas, planes de comisión y la vinculación proyecto–tipo; puedes volver a guardar un evento o recalcular el periodo para forzar la evaluación.
+    </p>
+    {% endif %}
+  </div>
+</div>
+{% endfor %}
+
+{# Notes modals for events with rich content #}
+{% for row in rows %}
+  {% for line in row.lines %}
+    {% if line.event.notes %}
+    <div class="modal fade" id="notesModal-{{ line.event_id }}" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" style="font-size:0.875rem;font-weight:600">
+              Notas · Evento #{{ line.event_id }}
+              <span class="text-muted fw-normal ms-2">{{ line.event.employee }} · {{ line.event.occurred_on|date:"d M Y" }}</span>
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body rich-notes-display">
+            {{ line.event.notes|safe }}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  {% endfor %}
+{% endfor %}
+
+<div class="modal fade" id="lineDetailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content" id="lineDetailModalContent">
+      <div class="modal-body text-center py-5">
+        <div class="spinner-border text-secondary" role="status"><span class="visually-hidden">Cargando…</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+document.getElementById('lineDetailModal').addEventListener('hidden.bs.modal', function(){
+  document.getElementById('lineDetailModalContent').innerHTML =
+    '<div class="modal-body text-center py-5"><div class="spinner-border text-secondary" role="status"><span class="visually-hidden">Cargando…</span></div></div>';
+});
+</script>
+
+{% endblock %}

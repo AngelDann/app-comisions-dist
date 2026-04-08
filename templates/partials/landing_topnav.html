@@ -1,0 +1,17 @@
+{# Misma barra que la landing: enlaces de sección apuntan al home con anclas. #}
+<nav class="ln-nav" id="lnNav">
+  <a class="ln-brand" href="{% url 'landing' %}">
+    <span class="ln-brand-mark">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    </span>
+    <span class="ln-brand-name">Comisiones</span>
+  </a>
+  <div class="ln-nav-links">
+    <a class="ln-nav-link" href="{% url 'landing' %}#funciones">Funciones</a>
+    <a class="ln-nav-link" href="{% url 'landing' %}#proceso">Cómo funciona</a>
+    <a class="ln-nav-link" href="{% url 'landing' %}#faq">Preguntas</a>
+    <a class="ln-nav-link{% if manual_nav_active %} is-active{% endif %}" href="{% url 'manuals:index' %}">Manual</a>
+    <a class="ln-btn ln-btn-ghost" href="{% url 'accounts:login' %}">Iniciar sesión</a>
+    <a class="ln-btn ln-btn-primary" href="{% url 'accounts:register_company' %}">Registrar empresa</a>
+  </div>
+</nav>

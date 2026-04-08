@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Tipos de comisión{% endblock %}
+{% block topbar_title %}Tipos de comisión{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Tipos de comisión</h1>
+    <p class="page-subtitle">Catálogo de esquemas de comisión disponibles.</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-primary btn-sm" href="{% url 'commissions_web:commission_type_create' %}">Nuevo tipo</a>
+  </div>
+</div>
+
+<div class="table-card">
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Slug</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in types %}
+        <tr>
+          <td style="font-weight:500">{{ t.name }}</td>
+          <td><code>{{ t.slug }}</code></td>
+          <td><a class="tbl-action" href="{% url 'commissions_web:commission_type_edit' t.pk %}">Editar / proyectos</a></td>
+        </tr>
+        {% empty %}
+        <tr class="tbl-empty"><td colspan="3">Sin tipos de comisión.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

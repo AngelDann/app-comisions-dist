@@ -1,0 +1,464 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block topbar_title %}{{ title }}{% endblock %}
+{% block content %}
+
+<div class="context-bar">
+  <a href="{% url 'commissions:plan_list' %}">Planes</a>
+  <span class="context-bar-sep">/</span>
+  <a href="{% url 'commissions:plan_detail' lock_plan.pk %}">{{ lock_plan.name }}</a>
+  <span class="context-bar-sep">/</span>
+  <span>{{ title }}</span>
+</div>
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">{{ title }}</h1>
+    <p class="page-subtitle">Plan <strong>{{ lock_plan.name }}</strong> · Define cuándo aplica y qué calcula.</p>
+  </div>
+</div>
+
+<div class="form-page">
+  <div class="form-page-main is-wide">
+    <form method="post" class="vstack gap-0" id="commission-rule-form">
+      {% csrf_token %}
+
+      {# ── Section 1: Identity & Scope ── #}
+      <div class="card mb-3">
+        <div class="card-header">Identificación y alcance</div>
+        <div class="card-body vstack gap-0">
+          <div class="mb-3">
+            <label class="form-label" for="{{ form.name.id_for_label }}">Nombre de la regla</label>
+            {{ form.name.errors }}
+            {{ form.name }}
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <label class="form-label" for="{{ form.project.id_for_label }}">{{ form.project.label }}</label>
+              {{ form.project.errors }}
+              {{ form.project }}
+              <div class="form-text">Vacío = todos los proyectos</div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="{{ form.team.id_for_label }}">{{ form.team.label }}</label>
+              {{ form.team.errors }}
+              {{ form.team }}
+              <div class="form-text">Vacío = todos los equipos</div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="{{ form.commission_type.id_for_label }}">{{ form.commission_type.label }}</label>
+              {{ form.commission_type.errors }}
+              {{ form.commission_type }}
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label" for="{{ form.valid_from.id_for_label }}">{{ form.valid_from.label }}</label>
+              {{ form.valid_from.errors }}
+              {{ form.valid_from }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="{{ form.valid_to.id_for_label }}">{{ form.valid_to.label }}</label>
+              {{ form.valid_to.errors }}
+              {{ form.valid_to }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="{{ form.priority.id_for_label }}">{{ form.priority.label }}</label>
+              {{ form.priority.errors }}
+              {{ form.priority }}
+              <div class="form-text">Menor = evalúa primero</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {# ── Section 2: Action ── #}
+      <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span>Qué hace (acción)</span>
+          <div class="mode-toggle">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="action_params_editor_mode" id="apm_structured" value="structured"
+                     {% if request.POST.action_params_editor_mode != 'advanced' %}checked{% endif %}>
+              <label class="form-check-label" for="apm_structured">Formulario</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="action_params_editor_mode" id="apm_advanced" value="advanced"
+                     {% if request.POST.action_params_editor_mode == 'advanced' %}checked{% endif %}>
+              <label class="form-check-label" for="apm_advanced">JSON</label>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label" for="{{ form.action_type.id_for_label }}">Tipo de acción</label>
+            {{ form.action_type.errors }}
+            {{ form.action_type }}
+          </div>
+
+          <p class="form-section-label" style="margin-top:0.5rem">Inicio rápido</p>
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <button type="button" class="btn btn-sm rule-preset" data-preset-action="percent_of_amount" data-preset-percent="10">
+              <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" style="opacity:0.6"><circle cx="12" cy="12" r="10"/><path d="M14.31 8l5.74 9.94M9.69 8h11.48M7.38 12l5.74-9.94M9.69 16L3.95 6.06M14.31 16H2.83M16.62 12l-5.74 9.94"/></svg>
+              10 %
+            </button>
+            <button type="button" class="btn btn-sm rule-preset" data-preset-action="percent_of_amount" data-preset-percent="20">
+              <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" style="opacity:0.6"><circle cx="12" cy="12" r="10"/><path d="M14.31 8l5.74 9.94M9.69 8h11.48M7.38 12l5.74-9.94M9.69 16L3.95 6.06M14.31 16H2.83M16.62 12l-5.74 9.94"/></svg>
+              20 %
+            </button>
+            <button type="button" class="btn btn-sm rule-preset" data-preset-action="fixed_per_event">
+              <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" style="opacity:0.6"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              Fijo
+            </button>
+            <button type="button" class="btn btn-sm rule-preset" data-preset-action="tiered_percent">
+              <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" style="opacity:0.6"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Tramos
+            </button>
+          </div>
+
+          <div id="action-params-structured">
+            <div id="action-params-fields" class="action-params-panel">
+              {% include "commissions/partials/rule_action_fields.html" with action_type=action_type_selected initial=action_initial repop=ap_repop tier_row_indices=tier_row_indices tier_display_rows=tier_display_rows %}
+            </div>
+          </div>
+          <div id="action-params-advanced" class="d-none mt-3">
+            <label class="form-label" for="{{ form.action_params_json.id_for_label }}">{{ form.action_params_json.label }}</label>
+            {{ form.action_params_json.errors }}
+            {{ form.action_params_json }}
+          </div>
+        </div>
+      </div>
+
+      {# ── Section 3: Conditions ── #}
+      <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span>Cuándo aplica (condiciones)</span>
+          <div class="mode-toggle">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="conditions_editor_mode" id="cem_visual" value="visual"
+                     {% if conditions_visual_ok and request.POST.conditions_editor_mode != 'advanced' %}checked{% endif %}
+                     {% if not conditions_visual_ok %}disabled{% endif %}>
+              <label class="form-check-label" for="cem_visual">Constructor</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="conditions_editor_mode" id="cem_advanced" value="advanced"
+                     {% if request.POST.conditions_editor_mode == 'advanced' %}checked{% endif %}
+                     {% if not conditions_visual_ok %}checked{% endif %}>
+              <label class="form-check-label" for="cem_advanced">JSON</label>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          {% if not conditions_visual_ok %}
+            <div class="alert alert-warning small mb-3">El árbol de condiciones actual no es editable en modo visual. Usa JSON.</div>
+          {% endif %}
+
+          <div id="conditions-visual" class="{% if not conditions_visual_ok %}d-none{% endif %}">
+            <p class="form-text mb-3">
+              Cada <strong>grupo</strong> se conecta con <span style="color:var(--app-primary);font-weight:600">OR</span>. Dentro del grupo, las filas se conectan con <span style="color:var(--app-info-text);font-weight:600">AND</span>. Sin condiciones = siempre aplica.
+            </p>
+            <div id="condition-or-groups" class="vstack gap-3 mb-3">
+              {% for group in condition_groups %}
+                <div class="cond-or-group" data-g="{{ forloop.counter0 }}">
+                  <div class="cond-and-rows vstack gap-1">
+                    {% for row in group %}
+                      {% include "commissions/partials/rule_condition_leaf.html" with g=forloop.parentloop.counter0 l=forloop.counter0 row=row %}
+                    {% empty %}
+                      {% include "commissions/partials/rule_condition_leaf.html" with g=forloop.counter0 l=0 row=None %}
+                    {% endfor %}
+                  </div>
+                  <button type="button" class="btn btn-sm btn-outline-secondary mt-2 js-add-and">
+                    <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Condición (AND)
+                  </button>
+                </div>
+              {% empty %}
+                <div class="cond-or-group" data-g="0">
+                  <div class="cond-and-rows vstack gap-1">
+                    {% include "commissions/partials/rule_condition_leaf.html" with g=0 l=0 row=None %}
+                  </div>
+                  <button type="button" class="btn btn-sm btn-outline-secondary mt-2 js-add-and">
+                    <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Condición (AND)
+                  </button>
+                </div>
+              {% endfor %}
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-primary js-add-or">
+              <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Grupo (OR)
+            </button>
+
+            <details class="mt-3">
+              <summary class="form-section-label" style="cursor:pointer;user-select:none">Vista previa JSON</summary>
+              <pre class="json-preview mt-2" id="conditions-json-preview">{{ conditions_preview_json }}</pre>
+            </details>
+          </div>
+
+          <div id="conditions-advanced" class="d-none">
+            <label class="form-label" for="{{ form.conditions_json.id_for_label }}">{{ form.conditions_json.label }}</label>
+            {{ form.conditions_json.errors }}
+            {{ form.conditions_json }}
+            {% if form.conditions_json.help_text %}<div class="form-text">{{ form.conditions_json.help_text }}</div>{% endif %}
+          </div>
+        </div>
+      </div>
+
+      {# ── Section 4: Behavior ── #}
+      <div class="card mb-3">
+        <div class="card-header">Comportamiento</div>
+        <div class="card-body">
+          <div class="d-flex flex-wrap gap-4">
+            <div class="form-check">
+              {{ form.stop_processing }}
+              <label class="form-check-label" for="{{ form.stop_processing.id_for_label }}">
+                {{ form.stop_processing.label }}
+                <span class="d-block form-text" style="font-size:0.6875rem">Corta evaluación de reglas posteriores</span>
+              </label>
+              {{ form.stop_processing.errors }}
+            </div>
+            <div class="form-check">
+              {{ form.is_active }}
+              <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                {{ form.is_active.label }}
+                <span class="d-block form-text" style="font-size:0.6875rem">Si está desactivada, el motor la ignora</span>
+              </label>
+              {{ form.is_active.errors }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {# ── Save bar ── #}
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Guardar regla
+        </button>
+        <a class="btn btn-outline-secondary" href="{% url 'commissions:plan_detail' lock_plan.pk %}">Cancelar</a>
+      </div>
+    </form>
+  </div>
+
+  <aside class="form-aside" aria-label="Ayuda">
+    <div class="form-aside-panel">
+      <h2 class="form-aside-title">Cómo funciona</h2>
+      <p class="form-aside-tip">Al registrar un evento, el motor busca reglas del plan cuyas <strong>condiciones</strong> coincidan con el contexto del evento.</p>
+      <p class="form-aside-tip">Si coincide, ejecuta la <strong>acción</strong> (p. ej. 20% del monto) y crea una <strong>línea de comisión</strong>.</p>
+
+      <h2 class="form-aside-title" style="margin-top:1.25rem">Prioridad</h2>
+      <p class="form-aside-tip">Número <strong>más bajo</strong> se evalúa antes. Usa saltos (10, 20, 30…).</p>
+
+      <h2 class="form-aside-title" style="margin-top:1.25rem">Campos disponibles</h2>
+      <p class="form-aside-tip">Las condiciones usan campos del evento: <code>amount_usd</code>, <code>event_kind</code>, <code>hours</code>, etc.</p>
+      <p class="form-aside-tip">Puedes ampliar claves en <strong>Admin → Rule field definitions</strong>.</p>
+    </div>
+  </aside>
+</div>
+
+<template id="tpl-or-group">
+  <div class="cond-or-group" data-g="__G__">
+    <div class="cond-and-rows vstack gap-1"></div>
+    <button type="button" class="btn btn-sm btn-outline-secondary mt-2 js-add-and">
+      <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Condición (AND)
+    </button>
+  </div>
+</template>
+
+<script>
+(function () {
+  var form = document.getElementById('commission-rule-form');
+  if (!form) return;
+
+  function syncModeVisibility() {
+    var condAdv = document.getElementById('cem_advanced');
+    var vis = document.getElementById('conditions-visual');
+    var adv = document.getElementById('conditions-advanced');
+    if (vis && adv && condAdv) {
+      vis.classList.toggle('d-none', condAdv.checked);
+      adv.classList.toggle('d-none', !condAdv.checked);
+    }
+    var apAdv = document.getElementById('apm_advanced');
+    var aps = document.getElementById('action-params-structured');
+    var apa = document.getElementById('action-params-advanced');
+    if (aps && apa && apAdv) {
+      aps.classList.toggle('d-none', apAdv.checked);
+      apa.classList.toggle('d-none', !apAdv.checked);
+    }
+  }
+
+  document.querySelectorAll('input[name="conditions_editor_mode"]').forEach(function (el) {
+    el.addEventListener('change', syncModeVisibility);
+  });
+  document.querySelectorAll('input[name="action_params_editor_mode"]').forEach(function (el) {
+    el.addEventListener('change', syncModeVisibility);
+  });
+  syncModeVisibility();
+
+  function renumberLeaves(groupEl) {
+    var g = groupEl.getAttribute('data-g');
+    groupEl.querySelectorAll('.cond-leaf').forEach(function (row, idx) {
+      row.setAttribute('data-l', String(idx));
+      row.querySelectorAll('[name^="cg_"]').forEach(function (inp) {
+        inp.name = inp.name.replace(/cg_\d+_l_\d+/, 'cg_' + g + '_l_' + idx);
+      });
+    });
+  }
+
+  function renumberAllGroups() {
+    document.querySelectorAll('#condition-or-groups .cond-or-group').forEach(function (grp, gi) {
+      grp.setAttribute('data-g', String(gi));
+      renumberLeaves(grp);
+    });
+  }
+
+  function bindLeaf(row) {
+    var rm = row.querySelector('.js-remove-leaf');
+    if (rm) {
+      rm.addEventListener('click', function () {
+        var grp = row.closest('.cond-or-group');
+        row.remove();
+        if (grp && grp.querySelectorAll('.cond-leaf').length === 0) {
+          grp.remove();
+          renumberAllGroups();
+        } else if (grp) {
+          renumberLeaves(grp);
+        }
+        updateCondPreview();
+      });
+    }
+  }
+
+  document.querySelectorAll('.cond-leaf').forEach(bindLeaf);
+
+  document.getElementById('condition-or-groups').addEventListener('click', function (e) {
+    if (!e.target.classList.contains('js-add-and') && !e.target.closest('.js-add-and')) return;
+    var btn = e.target.classList.contains('js-add-and') ? e.target : e.target.closest('.js-add-and');
+    var grp = btn.closest('.cond-or-group');
+    if (!grp) return;
+    var container = grp.querySelector('.cond-and-rows');
+    var proto = container.querySelector('.cond-leaf');
+    if (!proto) return;
+    var clone = proto.cloneNode(true);
+    clone.querySelectorAll('input, select').forEach(function (inp) {
+      if (inp.type === 'button') return;
+      inp.value = '';
+    });
+    container.appendChild(clone);
+    renumberLeaves(grp);
+    bindLeaf(clone);
+    updateCondPreview();
+  });
+
+  document.querySelector('.js-add-or').addEventListener('click', function () {
+    var wrap = document.getElementById('condition-or-groups');
+    var tpl = document.getElementById('tpl-or-group');
+    if (!wrap || !tpl) return;
+    var g = wrap.querySelectorAll('.cond-or-group').length;
+    var html = tpl.innerHTML.replace(/__G__/g, String(g));
+    var div = document.createElement('div');
+    div.innerHTML = html.trim();
+    var node = div.firstElementChild;
+    wrap.appendChild(node);
+    var proto = document.querySelector('.cond-leaf');
+    if (proto) {
+      var container = node.querySelector('.cond-and-rows');
+      var clone = proto.cloneNode(true);
+      clone.querySelectorAll('input, select').forEach(function (inp) {
+        if (inp.type === 'button') return;
+        inp.value = '';
+      });
+      container.appendChild(clone);
+    }
+    renumberAllGroups();
+    node.querySelectorAll('.cond-leaf').forEach(bindLeaf);
+    updateCondPreview();
+  });
+
+  function updateCondPreview() {
+    var pre = document.getElementById('conditions-json-preview');
+    if (!pre) return;
+    var groups = [];
+    document.querySelectorAll('#condition-or-groups .cond-or-group').forEach(function (grp) {
+      var leaves = [];
+      grp.querySelectorAll('.cond-leaf').forEach(function (row) {
+        var field = (row.querySelector('[name$="_field"]') || {}).value;
+        if (!field || !field.trim()) return;
+        var op = (row.querySelector('[name$="_op"]') || {}).value || 'eq';
+        var valRaw = (row.querySelector('[name$="_value"]') || {}).value || '';
+        var value;
+        if (op === 'in') {
+          value = valRaw.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+        } else if (valRaw === 'true' || valRaw === 'false') {
+          value = valRaw === 'true';
+        } else if (valRaw !== '' && !isNaN(Number(valRaw))) {
+          value = Number(valRaw);
+        } else {
+          value = valRaw;
+        }
+        leaves.push({ kind: 'leaf', field: field.trim(), op: op, value: value });
+      });
+      if (leaves.length === 1) groups.push(leaves[0]);
+      else if (leaves.length > 1) groups.push({ kind: 'group', op: 'AND', children: leaves });
+    });
+    var tree;
+    if (groups.length === 0) tree = { kind: 'group', op: 'AND', children: [] };
+    else if (groups.length === 1) tree = groups[0].kind === 'leaf' ? { kind: 'group', op: 'AND', children: [groups[0]] } : groups[0];
+    else tree = { kind: 'group', op: 'OR', children: groups };
+    pre.textContent = JSON.stringify(tree, null, 2);
+  }
+
+  var visEl = form.querySelector('#conditions-visual');
+  if (visEl) {
+    visEl.addEventListener('change', updateCondPreview);
+    visEl.addEventListener('input', updateCondPreview);
+  }
+  updateCondPreview();
+
+  function nextTierIndex() {
+    var m = -1;
+    document.querySelectorAll('#tier-rows-body input[name^="ap_tier_"]').forEach(function (inp) {
+      var mm = inp.name.match(/ap_tier_(\d+)_/);
+      if (mm) m = Math.max(m, parseInt(mm[1], 10));
+    });
+    return m + 1;
+  }
+  document.getElementById('action-params-fields').addEventListener('click', function (e) {
+    var btn = e.target.id === 'btn-add-tier-row' ? e.target : e.target.closest('#btn-add-tier-row');
+    if (!btn) return;
+    var tbody = document.getElementById('tier-rows-body');
+    if (!tbody) return;
+    var ti = nextTierIndex();
+    var tr = document.createElement('tr');
+    tr.className = 'tier-row';
+    tr.innerHTML =
+      '<td><input type="text" class="form-control form-control-sm" name="ap_tier_' + ti + '_min" inputmode="decimal"></td>' +
+      '<td><input type="text" class="form-control form-control-sm" name="ap_tier_' + ti + '_max" placeholder="sin tope" inputmode="decimal"></td>' +
+      '<td><input type="text" class="form-control form-control-sm" name="ap_tier_' + ti + '_percent" inputmode="decimal"></td>';
+    tbody.appendChild(tr);
+  });
+
+  document.querySelectorAll('.rule-preset').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var sel = document.getElementById('id_action_type');
+      if (!sel) return;
+      var act = btn.getAttribute('data-preset-action');
+      var pct = btn.getAttribute('data-preset-percent');
+      sel.value = act;
+      sel.dispatchEvent(new Event('change'));
+      if (pct) {
+        var once = function () {
+          var inp = document.querySelector('#action-params-fields input[name="percent"]');
+          if (inp) inp.value = pct;
+          document.body.removeEventListener('htmx:afterSwap', once);
+        };
+        document.body.addEventListener('htmx:afterSwap', once);
+      }
+    });
+  });
+})();
+</script>
+{% endblock %}
